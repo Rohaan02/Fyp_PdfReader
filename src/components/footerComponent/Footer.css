@@ -20,3 +20,12 @@
     vertical-align: middle;
     text-align: center;
 }
+
+.userName{
+    font-size: 24px;
+}
+
+.icon-link{
+    background-color: red;
+    margin-right: 20px;
+}

@@ -1,15 +1,22 @@
 // UserCard.js
-import React from 'react';
+import React from "react";
 
-const UserCard = ({ name, icons }) => {
+const UserCard = ({ name, links }) => {
   return (
     <div>
-      <h2>{name}</h2>
-      <div>
-        {icons.map((icon, index) => (
-          <img key={index} src={icon} alt={`${name} icon ${index}`} />
-        ))}
-      </div>
+      <span className="userName">{name}</span>
+      <br />
+      {links.map(({ url, icon: Icon }, index) => (
+        <a
+          key={index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="icon-link"
+        >
+          <Icon />
+        </a>
+      ))}
     </div>
   );
 };

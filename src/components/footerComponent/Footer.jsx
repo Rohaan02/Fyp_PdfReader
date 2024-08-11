@@ -1,30 +1,22 @@
 import "./Footer.css";
 import UserCard from "./devCards/DevCards";
-import {github} from '.././../assets/icons/github'
+import { FaLinkedin } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
 
 function FooterBox() {
-
   const users = [
     {
-      name: 'Rohaan',
-      icons: [
-        <a href="https://www.linkedin.com/in/rohaan" target="_blank" rel="noopener noreferrer" className="icon-link">
-          <BsLinkedin />
-        </a>,
-        <a href="https://github.com/Rohaan02" target="_blank" rel="noopener noreferrer" className="icon-link">
-          <github />
-        </a>
+      name: "Rohaan Nadeem",
+      links: [
+        { url: "https://www.linkedin.com/in/rohaan", icon: FaLinkedin },
+        { url: "https://github.com/Rohaan02", icon: FaGithub },
       ],
     },
     {
-      name: 'Burhan',
-      icons: [
-        <a href="https://www.linkedin.com/in/burhan" target="_blank" rel="noopener noreferrer" className="icon-link">
-          <BsLinkedin />
-        </a>,
-        <a href="https://github.com/Burhan02" target="_blank" rel="noopener noreferrer" className="icon-link">
-          <BsGithub />
-        </a>
+      name: "Noor Fatima",
+      links: [
+        { url: "https://www.linkedin.com/in/burhan", icon: FaLinkedin },
+        { url: "https://github.com/Burhan02", icon: FaGithub },
       ],
     },
   ];
@@ -34,7 +26,7 @@ function FooterBox() {
       <div className="leftDiv">
         <h3>Developers:</h3>
         {users.map((user, index) => (
-          <UserCard key={index} name={user.name} icons={user.icons} />
+          <UserCard key={index} name={user.name} links={user.links} />
         ))}
       </div>
       <div className="rightDiv">
