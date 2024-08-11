@@ -1,0 +1,22 @@
+.footstyle{
+    display:flex;
+    position: fixed;
+    bottom: 0;
+    background-color: black;
+    width:100%;
+    min-height: auto;
+    color: whitesmoke;
+}
+
+.leftDiv{
+    min-width: 50%;
+}
+.rightDiv{
+    min-width: 50%;
+}
+
+.DevBox{
+    display: flex;
+    vertical-align: middle;
+    text-align: center;
+}

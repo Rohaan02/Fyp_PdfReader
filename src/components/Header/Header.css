@@ -1,0 +1,27 @@
+#Header{
+    background-color: rgb(27, 27, 27);
+    top: 0;
+    position: fixed;
+    width: 100%;
+    display: flex;
+}
+
+.Website-Name{
+    width: 50%;
+    color: whitesmoke;
+}
+
+.Website-Name h2{
+    padding-left: 50px;
+}
+
+.navigation{
+    padding-top: 25px;
+    text-align: right;
+    width: 50%;
+}
+.navigation nav a{
+    color: whitesmoke;
+    font-size: 17px;
+    margin-right: 50px;
+}
