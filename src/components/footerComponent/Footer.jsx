@@ -1,4 +1,3 @@
-import "./Footer.css";
 import UserCard from "./devCards/DevCards";
 import { FaLinkedin } from "react-icons/fa6";
 import { FaGithub } from "react-icons/fa6";
@@ -22,14 +21,14 @@ function FooterBox() {
   ];
 
   return (
-    <div className="footstyle">
-      <div className="leftDiv">
-        <h3>Developers:</h3>
+    <div className="bg-gray-900 text-white bottom-0 w-full p-4 flex">
+      <div className="w-1/4">
+        <h3 className="text-lg">Developers:</h3>
         {users.map((user, index) => (
           <UserCard key={index} name={user.name} links={user.links} />
         ))}
       </div>
-      <div className="rightDiv">
+      <div className="w-3/4 text-right flex items-center justify-end pr-4">
         <p>© 2024 | No Copyrights reserved.</p>
       </div>
     </div>
