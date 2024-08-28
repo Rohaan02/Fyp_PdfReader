@@ -29,7 +29,7 @@ function FooterBox() {
         ))}
       </div>
       <div className="w-3/4 text-right flex items-center justify-end pr-4">
-        <p>© 2024 | No Copyrights reserved.</p>
+        <p>&copy; 2024 PDF Data Extraction Tool. All rights reserved.</p>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GoogleLogo from "../../assets/images/Google_Icons.png";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -79,15 +80,27 @@ const AuthPage = () => {
               {isLogin ? "Login" : "Signup"}
             </button>
           </div>
+          <p className="text-center font-bold">OR</p>
+          <button
+            type="button"
+            className="flex items-center justify-center bg-white border border-gray-300 text-gray-700 w-full py-3 rounded-lg hover:bg-gray-100"
+          >
+            <img
+              src={GoogleLogo}
+              alt="Google Logo"
+              className="w-10 h-10 mr-3"
+            />
+            <span>{isLogin ? "Login with Google" : "Signup with Google"}</span>
+          </button>
           {isLogin ? (
-            <div className="text-center">
+            <div className="text-center mt-4">
               Not a member?{" "}
               <button onClick={handleToggle} className="text-blue-500">
                 Signup now
               </button>
             </div>
           ) : (
-            <div className="text-center">
+            <div className="text-center mt-4">
               Already a member?{" "}
               <button onClick={handleToggle} className="text-blue-500">
                 Login now

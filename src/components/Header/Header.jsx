@@ -13,7 +13,9 @@ function Header() {
     <header className="bg-gray-900 w-full shadow-lg">
       <div className="container mx-auto flex justify-between items-center p-4">
         <div className="text-white text-2xl font-bold">
-          <h2 className="pl-2">PDF-Reader</h2>
+          <h2 className="pl-2">
+            Extraction of User Defined Information from PDF
+          </h2>
         </div>
         <nav className="hidden md:flex space-x-8">
           <Link to="/" className="text-white text-lg hover:text-blue-500">

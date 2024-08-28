@@ -38,6 +38,9 @@ function ChatPage() {
       {/* Left side - Chat Titles */}
       <div className="w-1/5 bg-white shadow-lg overflow-y-auto">
         <div className="p-4">
+          <button className="bg-black text-white font-bold p-2 rounded mb-2">
+            New Chat
+          </button>
           <div className="text-gray-600 mb-4">
             {new Date().toLocaleString()}
           </div>
