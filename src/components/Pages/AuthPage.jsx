@@ -1,8 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GoogleLogo from "../../assets/images/Google_Icons.png";
+import { GoogleLogin } from "@react-oauth/google";
 
 const AuthPage = () => {
+  const handleSuccess = (response) => {
+    console.log("Login Success:", response);
+    // Process the response (e.g., send to your backend)
+  };
+
+  const handleError = (error) => {
+    console.error("Login Error:", error);
+    // Handle errors
+  };
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
@@ -17,7 +27,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex flex-1 justify-center items-center bg-gradient-to-r from-blue-900 to-blue-400">
+    <div className="flex py-10 min-h-screen justify-center items-center bg-gradient-to-r from-blue-900 to-blue-400">
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <div className="text-center text-2xl font-bold mb-4">
           {isLogin ? "Login Form" : "Signup Form"}
@@ -81,17 +91,10 @@ const AuthPage = () => {
             </button>
           </div>
           <p className="text-center font-bold">OR</p>
-          <button
-            type="button"
-            className="flex items-center justify-center bg-white border border-gray-300 text-gray-700 w-full py-3 rounded-lg hover:bg-gray-100"
-          >
-            <img
-              src={GoogleLogo}
-              alt="Google Logo"
-              className="w-10 h-10 mr-3"
-            />
-            <span>{isLogin ? "Login with Google" : "Signup with Google"}</span>
-          </button>
+
+          <div className="flex justify-center">
+            <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
+          </div>
           {isLogin ? (
             <div className="text-center mt-4">
               Not a member?{" "}

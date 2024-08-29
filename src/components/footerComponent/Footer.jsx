@@ -21,7 +21,7 @@ function FooterBox() {
   ];
 
   return (
-    <div className="bg-gray-900 text-white bottom-0 w-full p-4 flex">
+    <div className="bg-gray-900 text-white bottom-0 mb-0 w-full p-4 flex">
       <div className="w-1/4">
         <h3 className="text-lg">Developers:</h3>
         {users.map((user, index) => (
