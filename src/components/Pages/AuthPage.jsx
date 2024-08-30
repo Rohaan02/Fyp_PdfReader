@@ -1,29 +1,94 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import GoogleLogo from "../../assets/images/Google_Icons.png";
 import { GoogleLogin } from "@react-oauth/google";
+import axios from "../../utils/axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 
 const AuthPage = () => {
-  const handleSuccess = (response) => {
-    console.log("Login Success:", response);
-    // Process the response (e.g., send to your backend)
+  const [isLogin, setIsLogin] = useState(false);
+  const [formData, setFormData] = useState({
+    identifier: "",
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      alert("User is already logged in");
+      navigate("/");
+    } else {
+      setIsLogin(false);
+    }
+  }, [navigate]);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleError = (error) => {
-    console.error("Login Error:", error);
-    // Handle errors
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const endpoint = isLogin ? "/auth/form-login" : "/auth/form-signup";
+
+    try {
+      const response = await axios.post(endpoint, formData);
+
+      if (response.status === 200 || response.status === 201) {
+        if (isLogin) {
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          navigate("/upload");
+        } else {
+          alert("Sign up completed!");
+          setIsLogin(true);
+        }
+      }
+    } catch (error) {
+      alert(
+        isLogin
+          ? "Sign in failed, please check your credentials."
+          : "Sign up failed, please try again."
+      );
+      console.error("Error:", error);
+    }
   };
-  const [isLogin, setIsLogin] = useState(true);
-  const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const { default: jwt_decode } = await import("jwt-decode");
+    const decoded = jwt_decode(credentialResponse.credential);
+
+    console.log("Google Login Data:", decoded);
+
+    try {
+      const response = await axios.post("/auth/google-login", decoded);
+
+      if (response.status === 200) {
+        alert("Google login successful!");
+        navigate("/upload");
+      } else {
+        alert("Google login failed, please try again.");
+      }
+    } catch (error) {
+      alert("Google login failed, please try again.");
+      console.error("Error:", error);
+    }
+  };
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Simulate successful login/signup and redirect
-    navigate("/upload-files");
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -51,31 +116,96 @@ const AuthPage = () => {
           </button>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <input
-              type="email"
-              placeholder="Email Address"
-              required
-              className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
-            />
-          </div>
-          {!isLogin && (
-            <div className="mb-4">
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                required
-                className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
-              />
-            </div>
+          {isLogin ? (
+            <>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  name="identifier"
+                  placeholder="Username or Email"
+                  required
+                  value={formData.identifier}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+              </div>
+              <div className="mb-4 relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle input type
+                  name="password"
+                  placeholder="Password"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+                <span
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  required
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+              </div>
+              <div className="mb-4">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  required
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+              </div>
+              <div className="mb-4 relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle input type
+                  name="password"
+                  placeholder="Password"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+                <span
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+              <div className="mb-4 relative">
+                <input
+                  type={showPassword ? "text" : "password"} // Toggle input type
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:border-blue-500"
+                />
+                <span
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+            </>
           )}
           <div className="flex justify-between items-center mb-4">
             {isLogin && (
@@ -91,9 +221,11 @@ const AuthPage = () => {
             </button>
           </div>
           <p className="text-center font-bold">OR</p>
-
           <div className="flex justify-center">
-            <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Login Failed")}
+            />
           </div>
           {isLogin ? (
             <div className="text-center mt-4">
