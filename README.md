@@ -127,6 +127,20 @@
         <h4>Noor Fatima:</h4> noor.fatima3831@gmail.com
     </div>
     <p>We welcome contributions and feedback to help improve the tool!</p>
+
+
+    <br>
+Run Project on Url: http://localhost:5173/
+Run Project with "npm run dev"
+run backend by run "node index.js" in server directory
+
+    For Extraction of Data from PDF in text form run in server directory
+    pip install PyMuPDF 
+    To handle file uploads in Express, run in server directory
+    npm install express-fileupload
+
+    <br>
+    <br>
 </body>
 
 </html>

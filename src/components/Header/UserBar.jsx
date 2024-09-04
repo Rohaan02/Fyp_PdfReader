@@ -11,6 +11,7 @@ function UserBar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
+  // const googleUser = JSON.parse(localStorage.getItem("googleUser"));
   const [userAvatar, setUserAvatar] = useState(null);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ function UserBar() {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("googleUser");
     localStorage.removeItem("userAvatar");
     navigate("/");
   };
@@ -42,7 +44,9 @@ function UserBar() {
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >
-          <span className="text-white">Hello, {user.username}</span>
+          <span className="text-white capitalize">
+            Hello, {user ? user?.username ?? user?.name : ""}
+          </span>
           <img
             src={userAvatar || "https://via.placeholder.com/150"} // Default avatar if none provided
             alt="User Avatar"
