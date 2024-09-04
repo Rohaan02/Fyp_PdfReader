@@ -7,7 +7,7 @@ const cors = require("cors");
 const app = express();
 app.use(cors()); // Allow CORS for all origins
 app.use(express.json()); // To parse JSON bodies
-
+app.use("/auth/", require("./authRoutes"));
 // MongoDB connection
 mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
   useNewUrlParser: true,
@@ -41,34 +41,6 @@ app.post("/auth/form-signup", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 });
-
-// // Login route
-// app.post("/auth/form-login", async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // Check if the user exists
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Invalid credentials" });
-//     }
-
-//     // Check if the password is correct
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Invalid credentials" });
-//     }
-
-//     // If login is successful, return user data (or token)
-//     res.status(200).json({ success: true, message: "Login successful", user });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: "Server error", error });
-//   }
-// });
 
 // Login route
 app.post("/auth/form-login", async (req, res) => {

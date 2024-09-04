@@ -7,7 +7,6 @@ import AuthPage from "./components/Pages/AuthPage";
 import UploadFiles from "./components/Pages/UploadFiles";
 import ChatPage from "./components/Pages/ChatPage";
 import axiosInstance from "./utils/axios";
-//import { jwtDecode } from "jwt-decode";
 
 axiosInstance();
 

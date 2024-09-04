@@ -1,25 +1,30 @@
 const express = require("express");
+const GoogleUser = require("./models/GoogleUser");
 const router = express.Router();
-const { handleGoogleLogin, handleFormLogin } = require("./authController");
 
 router.post("/google-login", async (req, res) => {
   try {
-    const user = await handleGoogleLogin(req.body);
-    res.status(200).json(user);
-  } catch (error) {
-    console.error("Google login error:", error.message);
-    res.status(500).send("Google login failed");
-  }
-});
+    const { credential } = req.body;
 
-router.post("/form-login", async (req, res) => {
-  try {
-    const { usernameOrEmail, password } = req.body;
-    const user = await handleFormLogin(usernameOrEmail, password);
-    res.status(200).json(user);
+    const { sub, name, email, picture } = req.body;
+
+    let user = await GoogleUser.findOne({ googleId: sub });
+
+    if (!user) {
+      user = new GoogleUser({
+        googleId: sub,
+        name,
+        email,
+        avatar: picture,
+      });
+
+      await user.save();
+    }
+
+    res.status(200).json({ user });
   } catch (error) {
-    console.error("Form login/signup error:", error.message);
-    res.status(500).send("Form login/signup failed");
+    console.error("Google login error:", error);
+    res.status(500).json({ message: "Google login failed." });
   }
 });
 

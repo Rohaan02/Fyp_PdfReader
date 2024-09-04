@@ -3,7 +3,7 @@ import React from "react";
 const UserCard = ({ name, links }) => {
   return (
     <div className="flex items-center mb-2">
-      <span className="userName pr-5">{name}</span>
+      <span className="userName w-36">{name}</span>
       <div className="flex space-x-4">
         {links.map(({ url, icon: Icon }, index) => (
           <a
