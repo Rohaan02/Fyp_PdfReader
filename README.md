@@ -139,6 +139,12 @@ run backend by run "node index.js" in server directory
     To handle file uploads in Express, run in server directory
     npm install express-fileupload
 
+    npm install multer:-
+    What is multer?
+Multer is a middleware for handling multipart/form-data, which is primarily used for uploading files. It processes incoming files and makes them accessible in the server through req.files.
+In the index.js file provided, multer is used to manage file uploads, saving them to a specific directory (uploads/) on the server.
+
+
     <br>
     <br>
 </body>

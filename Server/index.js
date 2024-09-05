@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const FilesPath = require("./models/FilesPath");
 
 const app = express();
 app.use(cors()); // Allow CORS for all origins
@@ -12,6 +15,56 @@ app.use("/auth/", require("./authRoutes"));
 mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+});
+
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Save files to the 'uploads' directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Keep the same name of the file as it is
+  },
+  // filename: (req, file, cb) => {
+  //   cb(null, Date.now() + path.extname(file.originalname)); // Rename file with timestamp
+  // },
+});
+
+const upload = multer({ storage });
+
+// File upload route
+app.post("/api/upload", upload.array("files"), async (req, res) => {
+  try {
+    const { userId, userType } = req.body; // Extract userId and userType
+
+    if (!userId || !userType) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and User Type are required",
+      });
+    }
+
+    const filePaths = req.files.map((file) => file.path);
+
+    const newFilesPath = new FilesPath({
+      userId,
+      userType,
+      files: filePaths,
+    });
+
+    await newFilesPath.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Files uploaded successfully",
+      data: newFilesPath,
+    });
+  } catch (error) {
+    console.error("File upload error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "File upload failed", error });
+  }
 });
 
 // Sign up route
@@ -70,6 +123,12 @@ app.post("/auth/form-login", async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error });
   }
+});
+
+app.get("/", (req, res) => {
+  return res.json({
+    message: "hahahahahaha",
+  });
 });
 
 // Start the server
