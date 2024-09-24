@@ -1,22 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// --- Feather Icon configurations ---
+import { Feather, X } from "react-feather";
+//OR
+// import * as Icon from "react-feather";
+
 function UploadFiles() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const navigate = useNavigate();
 
-  // Mock function to get the logged-in user (replace with actual implementation)
   const getLoggedInUser = () => {
     const user = localStorage.getItem("user")
       ? JSON.parse(localStorage.getItem("user"))
-      : {};
+      : null;
 
-    return {
-      id: user?._id, // Replace with actual user ID logic
-      type: "User", // or "Google_Users" based on authentication
-    };
+    return user ? { id: user._id, type: "User" } : "null";
   };
 
   const handleFileUpload = (newFiles) => {
@@ -61,8 +62,9 @@ function UploadFiles() {
 
     // Fetch logged-in user information
     const loggedInUser = getLoggedInUser();
-    if (!loggedInUser) {
-      alert("User not found.");
+    if (!loggedInUser || !loggedInUser.id) {
+      // Explicit check for user and user ID
+      alert("User not found, Please Login.");
       setLoading(false);
       return;
     }
@@ -128,12 +130,13 @@ function UploadFiles() {
             className="relative p-4 text-center bg-gray-100 rounded-lg shadow"
           >
             <p className="mb-2 text-sm font-medium">{file.name}</p>
-            <button
+            <X
+              className="absolute top-1 right-1 cursor-pointer text-red-500 hover:text-red-900"
               onClick={() => handleFileRemove(index)}
-              className="absolute top-1 right-1 text-red-500 text-xl hover:text-red-700"
-            >
-              ✖
-            </button>
+              size={24}
+            />
+            {/* or */}
+            {/* <Icon.X /> */}
           </div>
         ))}
       </div>
@@ -145,7 +148,7 @@ function UploadFiles() {
           loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-700"
         }`}
       >
-        {loading ? "Uploading..." : "Continue"}
+        {loading ? "Uploading..." : "Upload"}
       </button>
     </div>
   );

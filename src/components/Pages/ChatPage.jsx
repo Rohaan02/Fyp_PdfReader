@@ -1,37 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputWidth, setInputWidth] = useState("100%");
 
+  // Create a ref for the messages container
+  const messagesEndRef = useRef(null);
+
   const handleSendMessage = async () => {
     if (input.trim()) {
       const newMessage = { user: "You", text: input };
-      setMessages([...messages, newMessage]);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: input }),
-      });
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: input }),
+        });
 
-      const data = await response.json();
-      setMessages([...messages, newMessage, { user: "AI", text: data.answer }]);
+        const data = await response.json();
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { user: "AI", text: data.answer },
+        ]);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+
       setInput("");
-      setInputWidth("100%"); // Reset the input width after sending the message
+      setInputWidth("100%");
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevents a new line from being added
-      handleSendMessage();
-    } else if (e.key === "Enter" && e.shiftKey) {
-      e.preventDefault(); // Prevents a new line from being added
-      setInputWidth((prevWidth) => (prevWidth === "100%" ? "150%" : "100%"));
+    if (e.key === "Enter") {
+      if (!e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      } else {
+        setInputWidth((prevWidth) => (prevWidth === "100%" ? "150%" : "100%"));
+      }
     }
   };
+
+  // Scroll to the bottom of the messages container when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
     <div className="flex flex-1 bg-gray-100">
@@ -55,25 +72,32 @@ function ChatPage() {
       {/* Right side - Chat Window */}
       <div className="w-4/5 flex flex-col bg-white shadow-lg rounded-lg overflow-hidden">
         {/* Messages area */}
-        <div className="flex-grow p-6 overflow-y-auto space-y-4">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                msg.user === "You" ? "justify-end" : "justify-start"
-              }`}
-            >
+        <div
+          className="flex-grow p-6 overflow-y-auto"
+          style={{ height: "50px" }} // Set a fixed height
+        >
+          <div className="space-y-4">
+            {messages.map((msg, index) => (
               <div
-                className={`max-w-lg p-4 rounded-lg ${
-                  msg.user === "You"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-900"
+                key={index}
+                className={`flex ${
+                  msg.user === "You" ? "justify-end" : "justify-start"
                 }`}
               >
-                <p>{msg.text}</p>
+                <div
+                  className={`max-w-lg p-4 rounded-lg ${
+                    msg.user === "You"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-900"
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+            {/* Add a div to act as the bottom of the messages area */}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Input area */}

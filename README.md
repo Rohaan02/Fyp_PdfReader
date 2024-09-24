@@ -150,3 +150,6 @@ In the index.js file provided, multer is used to manage file uploads, saving the
 </body>
 
 </html>
+
+For the scroll of chat to prevent it from overflow
+    npm install react-perfect-scrollbar

@@ -23,11 +23,8 @@ const storage = multer.diskStorage({
     cb(null, "uploads/"); // Save files to the 'uploads' directory
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname); // Keep the same name of the file as it is
+    cb(null, Date.now() + "-" + file.originalname); // Rename file with timestamp
   },
-  // filename: (req, file, cb) => {
-  //   cb(null, Date.now() + path.extname(file.originalname)); // Rename file with timestamp
-  // },
 });
 
 const upload = multer({ storage });
