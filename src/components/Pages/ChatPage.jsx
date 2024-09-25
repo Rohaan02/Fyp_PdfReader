@@ -4,34 +4,69 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputWidth, setInputWidth] = useState("100%");
+  const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
 
   // Create a ref for the messages container
   const messagesEndRef = useRef(null);
 
-  const handleSendMessage = async () => {
-    if (input.trim()) {
-      const newMessage = { user: "You", text: input };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+  // Retrieve the recent uploaded file path from local storage when the component mounts
+  useEffect(() => {
+    const filePath = localStorage.getItem("recentUploadedFilePath");
+    if (filePath) {
+      setRecentUploadedFilePath(JSON.parse(filePath));
+    }
+  }, []);
 
+  const handleSendMessage = async () => {
+    if (input.trim() === "") {
+      console.error("Message cannot be empty.");
+      return;
+    }
+
+    const newMessage = { user: "You", text: input };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+    // If file path is available, extract data from the uploaded file
+    if (recentUploadedFilePath) {
       try {
-        const response = await fetch("/api/chat", {
+        const response = await fetch("/api/extract-data", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: input }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ filePath: recentUploadedFilePath }),
         });
 
         const data = await response.json();
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { user: "AI", text: data.answer },
-        ]);
+        if (data.success) {
+          console.log("Extracted data:", data.extractedData);
+          const botMessage = { user: "AI", text: data.extractedData };
+          setMessages((prevMessages) => [...prevMessages, botMessage]);
+        } else {
+          console.error("Data extraction failed.");
+          const errorMessage = {
+            user: "AI",
+            text: "Failed to extract data from the file.",
+          };
+          setMessages((prevMessages) => [...prevMessages, errorMessage]);
+        }
       } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error extracting data:", error);
+        const errorMessage = {
+          user: "AI",
+          text: "An error occurred while processing your request.",
+        };
+        setMessages((prevMessages) => [...prevMessages, errorMessage]);
       }
-
-      setInput("");
-      setInputWidth("100%");
+    } else {
+      // If no file path is available, just simulate a bot response
+      const simulatedResponse = { user: "AI", text: "No file uploaded." };
+      setMessages((prevMessages) => [...prevMessages, simulatedResponse]);
     }
+
+    // Clear the input
+    setInput("");
+    setInputWidth("100%");
   };
 
   const handleKeyPress = (e) => {
@@ -74,7 +109,7 @@ function ChatPage() {
         {/* Messages area */}
         <div
           className="flex-grow p-6 overflow-y-auto"
-          style={{ height: "50px" }} // Set a fixed height
+          style={{ height: "50vh" }} // Set a fixed height
         >
           <div className="space-y-4">
             {messages.map((msg, index) => (

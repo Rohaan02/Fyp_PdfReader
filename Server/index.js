@@ -6,10 +6,12 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const FilesPath = require("./models/FilesPath");
+const { exec } = require("child_process");
+const ExtractedData = require("./models/ExtractedData"); // New Model for storing extracted data
 
 const app = express();
-app.use(cors()); // Allow CORS for all origins
-app.use(express.json()); // To parse JSON bodies
+app.use(cors());
+app.use(express.json());
 app.use("/auth/", require("./authRoutes"));
 // MongoDB connection
 mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
@@ -32,15 +34,7 @@ const upload = multer({ storage });
 // File upload route
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
-    const { userId, userType } = req.body; // Extract userId and userType
-
-    if (!userId || !userType) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID and User Type are required",
-      });
-    }
-
+    const { userId, userType } = req.body;
     const filePaths = req.files.map((file) => file.path);
 
     const newFilesPath = new FilesPath({
@@ -51,9 +45,11 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
 
     await newFilesPath.save();
 
+    // Redirect user to ChatPage after file upload
     res.status(201).json({
       success: true,
       message: "Files uploaded successfully",
+      redirectUrl: "/chat",
       data: newFilesPath,
     });
   } catch (error) {
@@ -119,6 +115,48 @@ app.post("/auth/form-login", async (req, res) => {
     res.status(200).json({ success: true, message: "Login successful", user });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error });
+  }
+});
+
+//Data Extraction
+app.post("/api/extract-data", async (req, res) => {
+  try {
+    const { filePath } = req.body; // Path of the uploaded PDF file
+
+    // Run the Python script to extract data
+    exec(
+      `python extract_pdf_data.py ${filePath}`,
+      async (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing Python script: ${error}`);
+          return res
+            .status(500)
+            .json({ success: false, message: "Extraction failed" });
+        }
+
+        // Parse the extracted data from stdout
+        const extractedData = stdout.trim();
+
+        // Save the extracted data in MongoDB
+        const newExtractedData = new ExtractedData({
+          filePath,
+          extractedData,
+        });
+
+        await newExtractedData.save();
+
+        res.status(200).json({
+          success: true,
+          message: "Data extracted and saved successfully",
+          extractedData: newExtractedData,
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Extraction error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Data extraction failed", error });
   }
 });
 

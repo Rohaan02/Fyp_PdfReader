@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-// --- Feather Icon configurations ---
 import { Feather, X } from "react-feather";
-//OR
-// import * as Icon from "react-feather";
 
 function UploadFiles() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [uploadSessionId, setUploadSessionId] = useState(null); // Track session IDimport React, { useState } from "react";
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Retrieve or initialize the user's upload session ID from local storage
+    const storedSessionId = localStorage.getItem("uploadSessionId");
+    setUploadSessionId(storedSessionId ? parseInt(storedSessionId) : 1);
+  }, []);
 
   const getLoggedInUser = () => {
     const user = localStorage.getItem("user")
@@ -21,8 +24,33 @@ function UploadFiles() {
   };
 
   const handleFileUpload = (newFiles) => {
-    const pdfFiles = newFiles.filter((file) => file.type === "application/pdf");
-    setFiles((prevFiles) => [...prevFiles, ...pdfFiles]);
+    const loggedInUser = getLoggedInUser(); // Get the logged-in user
+    if (loggedInUser === "null") {
+      // Check if user is not logged in
+      alert("User not found. Please log in.");
+      return;
+    }
+
+    const pdfFiles = newFiles.filter((file) => {
+      if (file.type !== "application/pdf") {
+        alert(`${file.name} is not a PDF file.`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        // 5 MB limit
+        alert(`${file.name} exceeds the 5MB file size limit.`);
+        return false;
+      }
+      return true;
+    });
+
+    // Rename files with uploadSessionId, loggedInUser id, and original file name
+    const renamedFiles = pdfFiles.map((file) => {
+      const newFileName = `${uploadSessionId}_${loggedInUser.id}_${file.name}`; // Use loggedInUser.id here
+      return new File([file], newFileName, { type: file.type });
+    });
+
+    setFiles((prevFiles) => [...prevFiles, ...renamedFiles]);
   };
 
   const handleDragOver = (e) => {
@@ -63,7 +91,6 @@ function UploadFiles() {
     // Fetch logged-in user information
     const loggedInUser = getLoggedInUser();
     if (!loggedInUser || !loggedInUser.id) {
-      // Explicit check for user and user ID
       alert("User not found, Please Login.");
       setLoading(false);
       return;
@@ -79,6 +106,14 @@ function UploadFiles() {
       });
 
       if (response.ok) {
+        const data = await response.json(); // Assuming the server responds with the file paths
+        if (data.filePaths) {
+          // Save the file paths to local storage
+          localStorage.setItem(
+            "recentUploadedFilePath",
+            JSON.stringify(data.filePaths)
+          );
+        }
         setLoading(false);
         navigate("/chat");
       } else {
@@ -135,8 +170,6 @@ function UploadFiles() {
               onClick={() => handleFileRemove(index)}
               size={24}
             />
-            {/* or */}
-            {/* <Icon.X /> */}
           </div>
         ))}
       </div>
