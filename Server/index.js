@@ -60,6 +60,79 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
   }
 });
 
+// Fetch file paths for the logged-in user
+app.get("/api/get-file-paths", async (req, res) => {
+  const { userId, userType } = req.query;
+
+  try {
+    // Find files for the specified userId and userType
+    const files = await FilesPath.find({ userId, userType });
+
+    // Check if there are any files
+    if (files.length === 0) {
+      return res.status(200).json({
+        success: true,
+        filePaths: [], // Return an empty array if no files are found
+      });
+    }
+
+    // Get the last entry in the files array
+    const lastEntryFiles = files[files.length - 1].files;
+
+    // Ensure the file paths are only logged once
+    // console.log("File paths:", lastEntryFiles);
+
+    const extractedTextFromPDF = [];
+
+    // Create a function to handle the Python process for each file path
+    const extractTextFromPDF = (filePath) => {
+      return new Promise((resolve, reject) => {
+        const spawn = require("child_process").spawn;
+        const pythonProcess = spawn("python", [
+          "./extract_pdf_data.py",
+          filePath,
+        ]);
+
+        let extractText = ""; // Collect the output here
+
+        pythonProcess.stdout.on("data", (data) => {
+          extractText += data.toString(); // Append chunks to extractText
+        });
+
+        pythonProcess.stdout.on("end", () => {
+          resolve(extractText); // Resolve when the entire output is received
+        });
+
+        pythonProcess.on("error", (error) => {
+          reject(error); // Handle error cases
+        });
+      });
+    };
+
+    // Extract text from all PDF files asynchronously
+    for (const filePath of lastEntryFiles) {
+      const extractedText = await extractTextFromPDF(filePath);
+      extractedTextFromPDF.push(extractedText);
+
+      // Log the extracted text for each file once
+      // console.log(`Extracted text for ${filePath}:`, extractedText);
+    }
+
+    // Send response after all PDF data is extracted
+    res.status(200).json({
+      success: true,
+      filePaths: lastEntryFiles, // Return all file paths from the last entry
+      extractedTextFromPDF, // Return the extracted text
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching file paths",
+      error,
+    });
+  }
+});
+
 // Sign up route
 app.post("/auth/form-signup", async (req, res) => {
   try {

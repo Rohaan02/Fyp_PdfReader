@@ -9,12 +9,53 @@ function ChatPage() {
   // Create a ref for the messages container
   const messagesEndRef = useRef(null);
 
-  // Retrieve the recent uploaded file path from local storage when the component mounts
-  useEffect(() => {
-    const filePath = localStorage.getItem("recentUploadedFilePath");
-    if (filePath) {
-      setRecentUploadedFilePath(JSON.parse(filePath));
+  const fetchUploadedFilePaths = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user")); // Assuming user is stored in localStorage
+      if (!user) {
+        console.error("User not found");
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/get-file-paths?userId=${user._id}&userType=User`
+      );
+      const data = await response.json();
+
+      if (data.success && data.filePaths.length > 0) {
+        // Show all file paths from the last entry
+        const allFilePaths = data.filePaths.join("\n"); // Join the array into a string
+        const extractedText = data.extractedTextFromPDF.join("\n"); // Join extracted text into a string
+
+        setRecentUploadedFilePath(allFilePaths); // Update to store all file paths
+        console.log(allFilePaths);
+
+        // Construct the bot message
+        const botMessage = {
+          user: "AI",
+          text: `You have uploaded the following files:\n\n${allFilePaths}\n\nExtracted Text from PDFs:\n\n${extractedText}`, // Include extracted text after file paths
+        };
+
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      } else {
+        const noFilesMessage = {
+          user: "AI",
+          text: "No recent file uploads found.",
+        };
+        setMessages((prevMessages) => [...prevMessages, noFilesMessage]);
+      }
+    } catch (error) {
+      console.error("Error fetching file paths:", error);
+      const errorMessage = {
+        user: "AI",
+        text: "An error occurred while fetching your uploaded files.",
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
+  };
+
+  useEffect(() => {
+    fetchUploadedFilePaths();
   }, []);
 
   const handleSendMessage = async () => {

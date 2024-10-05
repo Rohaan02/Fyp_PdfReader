@@ -19,3 +19,4 @@ if __name__ == "__main__":
     
     # Output the extracted text (this will be captured by the exec call in Node.js)
     print(extracted_text)
+    sys.stdout.flush()
