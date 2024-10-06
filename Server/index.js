@@ -1,13 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const User = require("./models/User");
+const User = require("./models/User"); // Import the User model
+const FilesPath = require("./models/FilesPath"); // Import the FilesPath model
+const Chat = require("./models/Chat"); // Import the Chat model
+
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
-const FilesPath = require("./models/FilesPath");
 const { exec } = require("child_process");
-const ExtractedData = require("./models/ExtractedData"); // New Model for storing extracted data
 
 const app = express();
 app.use(cors());
@@ -188,48 +189,6 @@ app.post("/auth/form-login", async (req, res) => {
     res.status(200).json({ success: true, message: "Login successful", user });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error });
-  }
-});
-
-//Data Extraction
-app.post("/api/extract-data", async (req, res) => {
-  try {
-    const { filePath } = req.body; // Path of the uploaded PDF file
-
-    // Run the Python script to extract data
-    exec(
-      `python extract_pdf_data.py ${filePath}`,
-      async (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error executing Python script: ${error}`);
-          return res
-            .status(500)
-            .json({ success: false, message: "Extraction failed" });
-        }
-
-        // Parse the extracted data from stdout
-        const extractedData = stdout.trim();
-
-        // Save the extracted data in MongoDB
-        const newExtractedData = new ExtractedData({
-          filePath,
-          extractedData,
-        });
-
-        await newExtractedData.save();
-
-        res.status(200).json({
-          success: true,
-          message: "Data extracted and saved successfully",
-          extractedData: newExtractedData,
-        });
-      }
-    );
-  } catch (error) {
-    console.error("Extraction error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Data extraction failed", error });
   }
 });
 
