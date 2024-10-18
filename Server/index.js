@@ -20,7 +20,27 @@ mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
   useUnifiedTopology: true,
 });
 
+// // Configure Multer for file uploads
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/"); // Save files to the 'uploads' directory
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + "-" + file.originalname); // Rename file with timestamp
+//   },
+// });
+
+// const upload = multer({ storage });
+
 // Configure Multer for file uploads
+const fs = require("fs");
+
+// Ensure the 'uploads' directory exists
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/"); // Save files to the 'uploads' directory
@@ -31,6 +51,9 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+module.exports = upload;
+
 
 // File upload route
 app.post("/api/upload", upload.array("files"), async (req, res) => {
@@ -89,7 +112,7 @@ app.get("/api/get-file-paths", async (req, res) => {
     const extractTextFromPDF = (filePath) => {
       return new Promise((resolve, reject) => {
         const spawn = require("child_process").spawn;
-        const pythonProcess = spawn("python", [
+        const pythonProcess = spawn("python3", [
           "./extract_pdf_data.py",
           filePath,
         ]);

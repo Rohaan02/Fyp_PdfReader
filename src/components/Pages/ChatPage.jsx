@@ -156,16 +156,14 @@ function ChatPage() {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex ${
-                  msg.user === "You" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${msg.user === "You" ? "justify-end" : "justify-start"
+                  }`}
               >
                 <div
-                  className={`max-w-lg p-4 rounded-lg ${
-                    msg.user === "You"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-900"
-                  }`}
+                  className={`max-w-lg p-4 rounded-lg ${msg.user === "You"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-900"
+                    }`}
                 >
                   <p>{msg.text}</p>
                 </div>

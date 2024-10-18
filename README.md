@@ -63,15 +63,28 @@ Researchers, data analysts, students, and professionals across domains like heal
    - Open the project at [http://localhost:5173](http://localhost:5173).
 
 2. **Backend**:
-   - Run the backend by executing `npm start` in the server directory it will activate the nodemone which restart the server on every updation in the backend code.
+   - Run the backend by executing `npm start` in the server directory; this will activate nodemon, which restarts the server on every update in the backend code.
 
-3. **PDF Data Extraction**:
+3. **Python Setup** (if not already installed):
+   - Install `python3-pip` by running the following command:
+     ```bash
+     sudo apt install python3-pip
+     ```
+   - After the installation is complete, verify that pip is installed by checking its version:
+     ```bash
+     pip3 --version
+     ```
+   - Now, install PyMuPDF by running:
+     ```bash
+     pip3 install PyMuPDF
+     ```
+4. **PDF Data Extraction**:
    - Install PyMuPDF for PDF data extraction:
      ```bash
      pip install PyMuPDF
      ```
 
-4. **File Uploads**:
+5. **File Uploads**:
    - To handle file uploads in Express, run:
      ```bash
      npm install express-fileupload
@@ -80,10 +93,9 @@ Researchers, data analysts, students, and professionals across domains like heal
      ```bash
      npm install multer
      ```
-
    - Multer is a middleware for handling file uploads. In this project, it saves uploaded files to the `uploads/` directory.
 
-5. **Chat Scroll Handling**:
+6. **Chat Scroll Handling**:
    - To prevent chat overflow, install react-perfect-scrollbar:
      ```bash
      npm install react-perfect-scrollbar
@@ -93,7 +105,7 @@ Researchers, data analysts, students, and professionals across domains like heal
 
 For more information or to contribute to this project, please contact:
 
-- **Rohaan Nadeem**: rohaannadeem2@gmail.com
-- **Noor Fatima**: noor.fatima3831@gmail.com
+- **Rohaan Nadeem**: [rohaannadeem2@gmail.com](mailto:rohaannadeem2@gmail.com)
+- **Noor Fatima**: [noor.fatima3831@gmail.com](mailto:noor.fatima3831@gmail.com)
 
 We welcome contributions and feedback to help improve the tool!
