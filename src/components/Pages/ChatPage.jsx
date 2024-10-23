@@ -5,6 +5,8 @@ function ChatPage() {
   const [input, setInput] = useState("");
   const [inputWidth, setInputWidth] = useState("100%");
   const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
+  const [chatTitles, setChatTitles] = useState([]);
+  const [chatId, setChatId] = useState(null); // Track the chat ID
 
   // Create a ref for the messages container
   const messagesEndRef = useRef(null);
@@ -28,15 +30,18 @@ function ChatPage() {
         const extractedText = data.extractedTextFromPDF.join("\n"); // Join extracted text into a string
 
         setRecentUploadedFilePath(allFilePaths); // Update to store all file paths
-        console.log(allFilePaths);
 
         // Construct the bot message
         const botMessage = {
           user: "AI",
-          text: `You have uploaded the following files:\n\n${allFilePaths}\n\nExtracted Text from PDFs:\n\n${extractedText}`, // Include extracted text after file paths
+          text: `You have uploaded the following files:\n\n${allFilePaths}\n\nExtracted Text from PDFs:\n\n${extractedText}`,
         };
 
+        // Add the bot message
         setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+        // Create a new chat in the database
+        createChat(allFilePaths, extractedText);
       } else {
         const noFilesMessage = {
           user: "AI",
@@ -54,8 +59,97 @@ function ChatPage() {
     }
   };
 
+  const fetchPreviousChats = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user")); // Assuming user is stored in localStorage
+      if (!user) {
+        console.error("User not found");
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/get-previous-chats?userId=${user._id}`
+      );
+      const data = await response.json();
+
+      if (data.success && data.chats.length > 0) {
+        // Set chat titles from previous chats
+        setChatTitles(data.chats.map(chat => chat.title));
+      }
+    } catch (error) {
+      console.error("Error fetching previous chats:", error);
+    }
+  };
+
+  const createChat = async (filePaths, extractedText) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user")); // Get user from localStorage
+      if (!user) {
+        console.error("User not found");
+        return;
+      }
+
+      const filenames = filePaths.split("\n"); // Convert string back to array
+
+      const response = await fetch("http://localhost:5000/api/create-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user._id, // Pass the user ID
+          filenames,
+          extractedText,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        console.log("Chat created:", data.chatId);
+        setChatId(data.chatId); // Save chat ID
+      } else {
+        console.error("Failed to create chat:", data.message);
+      }
+    } catch (error) {
+      console.error("Error creating chat:", error);
+    }
+  };
+
+  const createSubChat = async (question, response, chatId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        console.error("User not found");
+        return;
+      }
+
+      const subChatResponse = await fetch("http://localhost:5000/api/create-subchat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chatId,
+          question,
+          response,
+          userId: user._id, // Include the userId
+        }),
+      });
+
+      const data = await subChatResponse.json();
+      if (data.success) {
+        console.log("Subchat created:", data.subChat);
+      } else {
+        console.error("Failed to create subchat:", data.message);
+      }
+    } catch (error) {
+      console.error("Error creating subchat:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUploadedFilePaths();
+    fetchPreviousChats();
   }, []);
 
   const handleSendMessage = async () => {
@@ -67,42 +161,13 @@ function ChatPage() {
     const newMessage = { user: "You", text: input };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-    // If file path is available, extract data from the uploaded file
-    if (recentUploadedFilePath) {
-      try {
-        const response = await fetch("/api/extract-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ filePath: recentUploadedFilePath }),
-        });
+    // After the user's message, respond with "response from AI"
+    const botResponse = { user: "AI", text: "response from ai" };
+    setMessages((prevMessages) => [...prevMessages, botResponse]);
 
-        const data = await response.json();
-        if (data.success) {
-          console.log("Extracted data:", data.extractedData);
-          const botMessage = { user: "AI", text: data.extractedData };
-          setMessages((prevMessages) => [...prevMessages, botMessage]);
-        } else {
-          console.error("Data extraction failed.");
-          const errorMessage = {
-            user: "AI",
-            text: "Failed to extract data from the file.",
-          };
-          setMessages((prevMessages) => [...prevMessages, errorMessage]);
-        }
-      } catch (error) {
-        console.error("Error extracting data:", error);
-        const errorMessage = {
-          user: "AI",
-          text: "An error occurred while processing your request.",
-        };
-        setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      }
-    } else {
-      // If no file path is available, just simulate a bot response
-      const simulatedResponse = { user: "AI", text: "No file uploaded." };
-      setMessages((prevMessages) => [...prevMessages, simulatedResponse]);
+    // Save sub-chat with user question and AI response
+    if (chatId) {
+      createSubChat(input, "response from ai", null, chatId);
     }
 
     // Clear the input
@@ -137,11 +202,14 @@ function ChatPage() {
             </button>
           </div>
           <div className="text-gray-900 mb-2 font-bold">Today</div>
-          <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
-          <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
+          {chatTitles.map((title, index) => (
+            <div key={index} className="bg-gray-200 p-2 rounded mb-2">
+              {title}
+            </div>
+          ))}
           <div className="text-gray-900 mb-2 font-bold">Yesterday</div>
+          {/* Placeholder titles */}
           <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
-          <div className="bg-gray-200 p-2 rounded">Chat Title</div>
         </div>
       </div>
 
@@ -175,18 +243,17 @@ function ChatPage() {
         </div>
 
         {/* Input area */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex">
+        <div className="bg-gray-300 p-4">
           <textarea
+            className="w-full h-20 p-2 rounded-lg resize-none"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Send a message..."
+            onKeyPress={handleKeyPress}
             style={{ width: inputWidth }}
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
           <button
             onClick={handleSendMessage}
-            className="ml-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="bg-blue-500 text-white font-bold p-2 rounded-lg mt-2"
           >
             Send
           </button>

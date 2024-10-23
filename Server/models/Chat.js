@@ -6,15 +6,21 @@ const chatSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  filename: {
+  chatName: {
     type: String,
-    required: true,
+    default: "",
   },
-  extractedData: {
-    type: String, // or an array/object depending on your data structure
-    required: true,
+  filenames: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
+  extractedText: {
+    type: String,
+    default: "",
   },
-  uploadedAt: {
+  createdAt: {
     type: Date,
     default: Date.now,
   },

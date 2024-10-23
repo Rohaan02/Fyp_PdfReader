@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const User = require("./models/User"); // Import the User model
 const FilesPath = require("./models/FilesPath"); // Import the FilesPath model
 const Chat = require("./models/Chat"); // Import the Chat model
+const SubChats = require("./models/SubChats"); // Import the SubChats model
 
 const bcrypt = require("bcrypt");
 const cors = require("cors");
@@ -19,18 +20,6 @@ mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-
-// // Configure Multer for file uploads
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/"); // Save files to the 'uploads' directory
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + "-" + file.originalname); // Rename file with timestamp
-//   },
-// });
-
-// const upload = multer({ storage });
 
 // Configure Multer for file uploads
 const fs = require("fs");
@@ -220,6 +209,181 @@ app.get("/", (req, res) => {
     message: "hahahahahaha",
   });
 });
+
+// Create chat and save extracted text in the Chat model
+app.post("/api/create-chat", async (req, res) => {
+  try {
+    const { userId, filenames, extractedText } = req.body;
+
+    // Ensure that userId, filenames, and extractedText are provided
+    if (!userId || !filenames || !extractedText) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing userId, filenames, or extractedText",
+      });
+    }
+
+    // Create a new chat with the extractedText field
+    const newChat = new Chat({
+      userId,
+      filenames,
+      extractedText,  // Saving extracted text directly in chat
+    });
+
+    await newChat.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Chat created successfully",
+      chatId: newChat._id,
+    });
+  } catch (error) {
+    console.error("Error creating chat:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create chat",
+      error,
+    });
+  }
+});
+
+
+// Update the chat name after the first user message
+app.put("/api/update-chat/:chatId", async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { chatName, extractedText, userId } = req.body; // Make sure we get extractedText
+
+    const chat = await Chat.findOne({ _id: chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found for this user",
+      });
+    }
+
+    chat.chatName = chatName;
+    chat.extractedText = extractedText;  // Update the extracted text if needed
+    await chat.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Chat updated successfully",
+      chat,
+    });
+  } catch (error) {
+    console.error("Error updating chat:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update chat",
+      error,
+    });
+  }
+});
+
+
+// Create a subchat (message) linked to a chat
+app.post("/api/create-subchat", async (req, res) => {
+  try {
+    const { chatId, question, response, userId } = req.body;
+
+    // Ensure that all required fields are provided
+    if (!chatId || !question || !response || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing one or more required fields",
+      });
+    }
+
+    // Ensure the chat belongs to the user
+    const chat = await Chat.findOne({ _id: chatId, userId });
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found for this user",
+      });
+    }
+
+    const newSubChat = new SubChat({
+      chatId,
+      extractedText,
+      messages: [{ question, response }],
+    });
+
+    await newSubChat.save();
+
+    res.status(201).json({
+      success: true,
+      message: "SubChat created successfully",
+      subChat: newSubChat,
+    });
+  } catch (error) {
+    console.error("Error creating subchat:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create subchat",
+      error,
+    });
+  }
+});
+
+
+// Fetch all chats for the logged-in user, including extracted text
+app.get("/api/chats", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const chats = await Chat.find({ userId });
+
+    res.status(200).json({
+      success: true,
+      chats,  // Chats now include extractedText field
+    });
+  } catch (error) {
+    console.error("Error fetching chats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch chats",
+      error,
+    });
+  }
+});
+
+
+// Fetch all subchats for a specific chatId
+app.get("/api/subchats/:chatId", async (req, res) => {
+  const { chatId } = req.params;
+  const { userId } = req.query; // Get userId from query
+
+  try {
+    // Ensure the chat belongs to the user
+    const chat = await Chat.findOne({ _id: chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found for this user",
+      });
+    }
+
+    const subChats = await SubChat.find({ chatId });
+
+    res.status(200).json({
+      success: true,
+      subChats,
+    });
+  } catch (error) {
+    console.error("Error fetching subchats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch subchats",
+      error,
+    });
+  }
+});
+
+
 
 // Start the server
 app.listen(5000, () => {
