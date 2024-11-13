@@ -25,7 +25,6 @@ function ChatPage() {
       const data = await response.json();
 
       if (data.success && data.filePaths.length > 0) {
-        // Show all file paths from the last entry
         const allFilePaths = data.filePaths.join("\n"); // Join the array into a string
         const extractedText = data.extractedTextFromPDF.join("\n"); // Join extracted text into a string
 
@@ -68,13 +67,13 @@ function ChatPage() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/get-previous-chats?userId=${user._id}`
+        `http://localhost:5000/api/chats/${user._id}`
       );
       const data = await response.json();
 
       if (data.success && data.chats.length > 0) {
         // Set chat titles from previous chats
-        setChatTitles(data.chats.map(chat => chat.title));
+        setChatTitles(data.chats.map(chat => chat.chatName));
       }
     } catch (error) {
       console.error("Error fetching previous chats:", error);
@@ -129,7 +128,7 @@ function ChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          chatId,
+          chatId, // Use the actual chatId from state
           question,
           response,
           userId: user._id, // Include the userId
@@ -167,7 +166,9 @@ function ChatPage() {
 
     // Save sub-chat with user question and AI response
     if (chatId) {
-      createSubChat(input, "response from ai", null, chatId);
+      createSubChat(input, "response from ai", chatId); // Pass the chatId from state
+    } else {
+      console.error("Chat ID is missing. Subchat cannot be created.");
     }
 
     // Clear the input
@@ -203,9 +204,9 @@ function ChatPage() {
           </div>
           <div className="text-gray-900 mb-2 font-bold">Today</div>
           {chatTitles.map((title, index) => (
-            <div key={index} className="bg-gray-200 p-2 rounded mb-2">
+            <button key={index} className="bg-gray-200 p-2 rounded mb-2 block w-[100%]">
               {title}
-            </div>
+            </button>
           ))}
           <div className="text-gray-900 mb-2 font-bold">Yesterday</div>
           {/* Placeholder titles */}
@@ -245,15 +246,14 @@ function ChatPage() {
         {/* Input area */}
         <div className="bg-gray-300 p-4">
           <textarea
-            className="w-full h-20 p-2 rounded-lg resize-none"
+            className="w-full h-24 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:border-blue-500 resize-none"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            style={{ width: inputWidth }}
           />
           <button
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded mt-2"
             onClick={handleSendMessage}
-            className="bg-blue-500 text-white font-bold p-2 rounded-lg mt-2"
           >
             Send
           </button>

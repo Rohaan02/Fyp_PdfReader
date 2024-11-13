@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const User = require("./models/User"); // Import the User model
 const FilesPath = require("./models/FilesPath"); // Import the FilesPath model
 const Chat = require("./models/Chat"); // Import the Chat model
-const SubChats = require("./models/SubChats"); // Import the SubChats model
+const SubChat = require("./models/SubChats"); // Import the SubChats model
 
 const bcrypt = require("bcrypt");
 const cors = require("cors");
@@ -307,7 +307,6 @@ app.post("/api/create-subchat", async (req, res) => {
 
     const newSubChat = new SubChat({
       chatId,
-      extractedText,
       messages: [{ question, response }],
     });
 
@@ -330,15 +329,15 @@ app.post("/api/create-subchat", async (req, res) => {
 
 
 // Fetch all chats for the logged-in user, including extracted text
-app.get("/api/chats", async (req, res) => {
-  const { userId } = req.query;
+app.get("/api/chats/:userId", async (req, res) => {
+  const { userId } = req.params;
 
   try {
     const chats = await Chat.find({ userId });
 
     res.status(200).json({
       success: true,
-      chats,  // Chats now include extractedText field
+      chats,
     });
   } catch (error) {
     console.error("Error fetching chats:", error);
@@ -382,8 +381,6 @@ app.get("/api/subchats/:chatId", async (req, res) => {
     });
   }
 });
-
-
 
 // Start the server
 app.listen(5000, () => {
