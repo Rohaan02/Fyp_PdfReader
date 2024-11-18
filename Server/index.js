@@ -305,27 +305,44 @@ app.post("/api/create-subchat", async (req, res) => {
       });
     }
 
-    const newSubChat = new SubChat({
-      chatId,
-      messages: [{ question, response }],
-    });
+    // Check if a SubChat already exists for the chatId
+    const existingSubChat = await SubChat.findOne({ chatId });
 
-    await newSubChat.save();
+    if (existingSubChat) {
+      // Append the new message to the existing SubChat
+      existingSubChat.messages.push({ question, response });
+      await existingSubChat.save();
 
-    res.status(201).json({
-      success: true,
-      message: "SubChat created successfully",
-      subChat: newSubChat,
-    });
+      res.status(200).json({
+        success: true,
+        message: "Message added to existing SubChat",
+        subChat: existingSubChat,
+      });
+    } else {
+      // Create a new SubChat if it doesn't exist
+      const newSubChat = new SubChat({
+        chatId,
+        messages: [{ question, response }],
+      });
+
+      await newSubChat.save();
+
+      res.status(201).json({
+        success: true,
+        message: "New SubChat created successfully",
+        subChat: newSubChat,
+      });
+    }
   } catch (error) {
-    console.error("Error creating subchat:", error);
+    console.error("Error updating or creating subchat:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to create subchat",
+      message: "Failed to update or create subchat",
       error,
     });
   }
 });
+
 
 
 // Fetch all chats for the logged-in user, including extracted text

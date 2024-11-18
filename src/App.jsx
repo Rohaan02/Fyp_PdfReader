@@ -5,7 +5,7 @@ import FooterBox from "./components/footerComponent/Footer";
 import HomePage from "./components/Pages/HomePage/HomePage";
 import AuthPage from "./components/Pages/AuthPage";
 import UploadFiles from "./components/Pages/UploadFiles";
-import ChatPage from "./components/Pages/ChatPage";
+import ChatPage from "./components/Pages/Chat/ChatPage";
 import axiosInstance from "./utils/axios";
 
 axiosInstance();
