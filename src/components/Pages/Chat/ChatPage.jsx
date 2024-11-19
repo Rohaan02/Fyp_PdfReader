@@ -27,17 +27,39 @@ const ChatPage = () => {
         const allFilePaths = data.filePaths.join("\n");
         const extractedText = data.extractedTextFromPDF.join("\n");
 
-        setRecentUploadedFilePath(allFilePaths); // Set the file paths
+        setRecentUploadedFilePath(allFilePaths);
 
-        // Add AI message with file paths and extracted text
+        // Check if a chat already exists for the uploaded files
+        const existingChat = await fetch(
+          `http://localhost:5000/api/chats/${user._id}`
+        );
+        const chatData = await existingChat.json();
+
+        let existingChatId = null;
+
+        if (chatData.success && chatData.chats.length > 0) {
+          const foundChat = chatData.chats.find((chat) =>
+            chat.filenames.every((filename) => allFilePaths.includes(filename))
+          );
+
+          if (foundChat) {
+            existingChatId = foundChat._id;
+          }
+        }
+
+        if (!existingChatId) {
+          // If no chat exists, create a new one
+          createChat(allFilePaths, extractedText);
+        } else {
+          // If chat exists, set its ID
+          setChatId(existingChatId);
+        }
+
         const botMessage = {
           user: "AI",
           text: `You have uploaded the following files:\n\n${allFilePaths}\n\nExtracted Text from PDFs:\n\n${extractedText}`,
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
-
-        // Create a new chat in the database
-        createChat(allFilePaths, extractedText);
       } else {
         const noFilesMessage = {
           user: "AI",
@@ -55,7 +77,7 @@ const ChatPage = () => {
     }
   };
 
-  // Fetch previous chats
+  // Fetch previous chats and sort them by creation time
   const fetchPreviousChats = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -70,7 +92,18 @@ const ChatPage = () => {
       const data = await response.json();
 
       if (data.success && data.chats.length > 0) {
-        setChatTitles(data.chats.map((chat) => chat.chatName));
+        // Sort chats by creation time (latest first)
+        const sortedChats = data.chats.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        // setChatTitles(sortedChats.map((chat) => chat.chatName));
+        setChatTitles(
+          sortedChats.map((chat) => ({
+            chatName: chat.chatName || "Unnamed Chat",
+            createdAt: chat.createdAt,
+          }))
+        );
       }
     } catch (error) {
       console.error("Error fetching previous chats:", error);
@@ -102,7 +135,7 @@ const ChatPage = () => {
 
       const data = await response.json();
       if (data.success) {
-        setChatId(data.chatId); // Set the chat ID
+        setChatId(data.chatId);
       } else {
         console.error("Failed to create chat:", data.message);
       }
@@ -163,7 +196,6 @@ const ChatPage = () => {
   };
 
   const handleSelectChat = (title) => {
-    // Handle selecting a chat
     console.log("Selected chat:", title);
   };
 
