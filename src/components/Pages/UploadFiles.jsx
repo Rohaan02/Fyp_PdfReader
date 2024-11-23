@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+//this file code updated by Noor Fatima
 import Sidebar from './Sidebar'; // Assuming Sidebar is reusable
 import { FaUpload, FaTrashAlt, FaCloudUploadAlt } from 'react-icons/fa'; // Import the icons
 
