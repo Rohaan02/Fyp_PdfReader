@@ -247,6 +247,71 @@ app.post("/api/create-chat", async (req, res) => {
   }
 });
 
+// Edit chat name
+app.put("/api/chats/:chatId", async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { chatName, userId } = req.body;
+
+    const chat = await Chat.findOne({ _id: chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found or does not belong to the user",
+      });
+    }
+
+    chat.chatName = chatName;
+    await chat.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Chat updated successfully",
+      chat,
+    });
+  } catch (error) {
+    console.error("Error updating chat:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update chat",
+      error,
+    });
+  }
+});
+
+// Delete chat
+app.delete("/api/chats/:chatId", async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { userId } = req.body;
+
+    const chat = await Chat.findOne({ _id: chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found or does not belong to the user",
+      });
+    }
+
+    await Chat.deleteOne({ _id: chatId });
+    await SubChat.deleteMany({ chatId }); // Delete all associated subchats
+
+    res.status(200).json({
+      success: true,
+      message: "Chat deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete chat",
+      error,
+    });
+  }
+});
+
 
 // Update the chat name after the first user message
 app.put("/api/update-chat/:chatId", async (req, res) => {

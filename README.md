@@ -7,22 +7,27 @@ The **"Extraction of User Defined Information from PDF"** is a web-based tool de
 ## Key Features
 
 ### 1. User Account Management
+
 - Users can sign up or log in using a form or their Google accounts.
 - All user-related data, such as chat history and preferences, are securely stored in the database.
 
 ### 2. Custom Information Extraction
+
 - Users can define specific variables or prompts for extracting information from PDFs, such as names, dates, keywords, or graphical content.
 - Utilizes advanced Natural Language Processing (NLP) and Large Language Models (LLMs) to efficiently extract the desired information.
 
 ### 3. Meta-Analysis of Extracted Data
+
 - The tool presents extracted information in multiple formats including text, tables, and graphs for enhanced data analysis.
 - Provides comprehensive visualizations and meta-analyses for better insights.
 
 ### 4. Storage and Retrieval
+
 - Offers the capability to store and retrieve previously extracted information for faster responses and cost-effective processing.
 - Personalizes the user experience by saving preferences and extraction history.
 
 ### 5. Cross-Platform Accessibility
+
 - Developed using React for a responsive front-end, ensuring accessibility across various devices and browsers.
 - Built with Express and Python libraries like PyMuPDF and NLTK for robust back-end processing.
 
@@ -37,9 +42,11 @@ The **"Extraction of User Defined Information from PDF"** is a web-based tool de
 ## Project Goals and Deliverables
 
 ### Final Deliverable:
+
 A web-based application that provides a seamless and efficient method for extracting user-defined information from PDFs.
 
 ### Beneficiaries:
+
 Researchers, data analysts, students, and professionals across domains like healthcare, academia, and finance.
 
 ## How to Use
@@ -59,10 +66,12 @@ Researchers, data analysts, students, and professionals across domains like heal
 ## Run the Project
 
 1. **Frontend**:
+
    - Run the project with `npm run dev`.
    - Open the project at [http://localhost:5173](http://localhost:5173).
 
 2. **Backend**:
+
    - Run the backend by executing `npm start` in the server directory; this will activate nodemon, which restarts the server on every update in the backend code.
 
 3. **Python Setup** (if not already installed):
@@ -79,12 +88,14 @@ Researchers, data analysts, students, and professionals across domains like heal
      pip3 install PyMuPDF
      ```
 4. **PDF Data Extraction**:
+
    - Install PyMuPDF for PDF data extraction:
      ```bash
      pip install PyMuPDF
      ```
 
 5. **File Uploads**:
+
    - To handle file uploads in Express, run:
      ```bash
      npm install express-fileupload
@@ -109,3 +120,6 @@ For more information or to contribute to this project, please contact:
 - **Noor Fatima**: [noor.fatima3831@gmail.com](mailto:noor.fatima3831@gmail.com)
 
 We welcome contributions and feedback to help improve the tool!
+
+Used react-icons
+and installed by running this command "npm install react-icons"

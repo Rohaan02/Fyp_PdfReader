@@ -1,6 +1,7 @@
 import React from "react";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
-const ChatSidebar = ({ chatTitles, onSelectChat }) => {
+const ChatSidebar = ({ chatTitles, onSelectChat, refreshChats }) => {
   const formatChatDate = (dateString) => {
     const chatDate = new Date(dateString);
     const now = new Date();
@@ -29,7 +30,47 @@ const ChatSidebar = ({ chatTitles, onSelectChat }) => {
     }
   };
 
-  // Group chats by their formatted date
+  const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const handleEdit = async (chatId) => {
+    const newChatName = prompt("Enter new chat name:");
+    if (!newChatName) return;
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      await fetch(`http://localhost:5000/api/chats/${chatId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatName: newChatName, userId: user._id }),
+      });
+      alert("Chat updated successfully");
+      refreshChats();
+    } catch (error) {
+      console.error("Error updating chat:", error);
+      alert("Failed to update chat");
+    }
+  };
+
+  const handleDelete = async (chatId) => {
+    if (!window.confirm("Are you sure you want to delete this chat?")) return;
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      await fetch(`http://localhost:5000/api/chats/${chatId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id }),
+      });
+      alert("Chat deleted successfully");
+      refreshChats();
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      alert("Failed to delete chat");
+    }
+  };
+
   const groupedChats = chatTitles.reduce((acc, chat) => {
     const formattedDate = formatChatDate(chat.createdAt);
     if (!acc[formattedDate]) {
@@ -42,26 +83,43 @@ const ChatSidebar = ({ chatTitles, onSelectChat }) => {
   return (
     <div className="w-1/5 bg-white shadow-lg overflow-y-auto">
       <div className="p-4">
-        {/* Heading for Previous Chats */}
         <div className="text-lg font-bold text-center bg-gray-800 text-yellow-50 py-1 rounded-lg mb-4">
           Previous Chats
         </div>
-
-        {/* Render grouped chats */}
         {Object.entries(groupedChats).map(([date, chats], index) => (
           <div key={index}>
-            {/* Display the date header */}
             <div className="text-gray-600 text-sm font-semibold mb-2 mt-6">
               {date}
             </div>
-            {/* Display the buttons for each chat under this date */}
             {chats.map((chat, chatIndex) => (
               <button
                 key={chatIndex}
-                className="bg-gray-200 p-2 text-left text-xs capitalize rounded h-12 mb-2 block w-[100%]"
+                className="flex justify-between items-center mt-2 bg-gray-200 p-2 text-left text-xs capitalize rounded h-12 w-full hover:bg-gray-300"
                 onClick={() => onSelectChat(chat.chatName)}
               >
-                {chat.chatName}
+                <span>{truncateText(chat.chatName, 25)}</span>
+                <div className="flex space-x-2">
+                  <button
+                    className="text-gray-400 hover:text-blue-600"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the chat selection
+                      handleEdit(chat._id);
+                    }}
+                    title="Edit"
+                  >
+                    <FaEdit size={16} />
+                  </button>
+                  <button
+                    className="text-gray-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the chat selection
+                      handleDelete(chat._id);
+                    }}
+                    title="Delete"
+                  >
+                    <FaTrashAlt size={16} />
+                  </button>
+                </div>
               </button>
             ))}
           </div>

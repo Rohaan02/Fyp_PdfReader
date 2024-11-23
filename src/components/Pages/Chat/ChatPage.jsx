@@ -9,7 +9,6 @@ const ChatPage = () => {
   const [chatId, setChatId] = useState(null);
   const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
 
-  // Fetch uploaded files and extracted text from the server
   const fetchUploadedFilePaths = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -29,7 +28,6 @@ const ChatPage = () => {
 
         setRecentUploadedFilePath(allFilePaths);
 
-        // Check if a chat already exists for the uploaded files
         const existingChat = await fetch(
           `http://localhost:5000/api/chats/${user._id}`
         );
@@ -48,10 +46,8 @@ const ChatPage = () => {
         }
 
         if (!existingChatId) {
-          // If no chat exists, create a new one
           createChat(allFilePaths, extractedText);
         } else {
-          // If chat exists, set its ID
           setChatId(existingChatId);
         }
 
@@ -77,7 +73,6 @@ const ChatPage = () => {
     }
   };
 
-  // Fetch previous chats and sort them by creation time
   const fetchPreviousChats = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -92,14 +87,13 @@ const ChatPage = () => {
       const data = await response.json();
 
       if (data.success && data.chats.length > 0) {
-        // Sort chats by creation time (latest first)
         const sortedChats = data.chats.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
-        // setChatTitles(sortedChats.map((chat) => chat.chatName));
         setChatTitles(
           sortedChats.map((chat) => ({
+            _id: chat._id,
             chatName: chat.chatName || "Unnamed Chat",
             createdAt: chat.createdAt,
           }))
@@ -110,7 +104,6 @@ const ChatPage = () => {
     }
   };
 
-  // Create a new chat
   const createChat = async (filePaths, extractedText) => {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -206,10 +199,11 @@ const ChatPage = () => {
 
   return (
     <div className="flex flex-1 bg-gray-100 max-h-[100vh]">
-      {/* Left side - Chat Titles */}
-      <ChatSidebar chatTitles={chatTitles} onSelectChat={handleSelectChat} />
-
-      {/* Right side - Chat Window */}
+      <ChatSidebar
+        chatTitles={chatTitles}
+        onSelectChat={handleSelectChat}
+        refreshChats={fetchPreviousChats}
+      />
       <ChatWindow
         messages={messages}
         input={input}
