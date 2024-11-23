@@ -7,6 +7,7 @@ import AuthPage from "./components/Pages/AuthPage";
 import UploadFiles from "./components/Pages/UploadFiles";
 import ChatPage from "./components/Pages/Chat/ChatPage";
 import PrivateRoute from "./PrivateRoute";
+import ProfilePage from "./components/Pages/ProfilePage";
 
 function App() {
   return (
@@ -16,6 +17,14 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <ProfilePage />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/upload"
             element={

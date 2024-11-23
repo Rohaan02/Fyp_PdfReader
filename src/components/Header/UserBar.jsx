@@ -70,9 +70,12 @@ function UserBar() {
           onMouseLeave={() => setIsOpen(false)}
         >
           <div className="py-1">
-            <a href="#" className="block px-4 py-2 text-sm hover:bg-gray-700">
-              Edit Profile
-            </a>
+            <button
+              onClick={() => navigate("/profile")}
+              className="block px-4 py-2 text-sm hover:bg-gray-700 w-full text-left"
+            >
+              Profile
+            </button>
             <button
               onClick={handleLogout}
               className="block px-4 py-2 text-sm hover:bg-gray-700 w-full text-left"
