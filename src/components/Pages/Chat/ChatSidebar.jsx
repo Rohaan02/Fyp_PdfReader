@@ -1,7 +1,12 @@
 import React from "react";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
-const ChatSidebar = ({ chatTitles, onSelectChat, refreshChats }) => {
+const ChatSidebar = ({
+  chatTitles,
+  onSelectChat,
+  refreshChats,
+  activeChatId,
+}) => {
   const formatChatDate = (dateString) => {
     const chatDate = new Date(dateString);
     const now = new Date();
@@ -94,8 +99,14 @@ const ChatSidebar = ({ chatTitles, onSelectChat, refreshChats }) => {
             {chats.map((chat, chatIndex) => (
               <button
                 key={chatIndex}
-                className="flex justify-between items-center mt-2 bg-gray-200 p-2 text-left text-xs capitalize rounded h-12 w-full hover:bg-gray-300"
-                onClick={() => onSelectChat(chat.chatName)}
+                // className="flex justify-between items-center mt-2 bg-gray-200 p-2 text-left text-xs capitalize rounded h-12 w-full hover:bg-gray-300"
+                className={`flex justify-between items-center mt-2 p-2 text-left text-xs capitalize rounded h-12 w-full ${
+                  chat._id === activeChatId
+                    ? "bg-blue-200" // Highlight for active chat
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+                // onClick={() => onSelectChat(chat.chatName)}
+                onClick={() => onSelectChat(chat._id)}
               >
                 <span>{truncateText(chat.chatName, 25)}</span>
                 <div className="flex space-x-2">

@@ -312,6 +312,88 @@ app.delete("/api/chats/:chatId", async (req, res) => {
   }
 });
 
+// // Fetch chat data with subchats
+// app.get("/api/chat-data/:chatId", async (req, res) => {
+//   const { chatId } = req.params;
+//   const { userId } = req.query;
+
+//   try {
+//     // Ensure the chat belongs to the user
+//     const chat = await Chat.findOne({ _id: chatId, userId });
+
+//     if (!chat) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Chat not found for this user",
+//       });
+//     }
+
+//     // Fetch subchats for the chat
+//     const subChats = await SubChat.findOne({ chatId });
+
+//     res.status(200).json({
+//       success: true,
+//       chat,
+//       subChats: subChats ? subChats.messages : [],
+//     });
+//   } catch (error) {
+//     console.error("Error fetching chat data:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch chat data",
+//       error,
+//     });
+//   }
+// });
+// Fetch chat data with subchats
+app.get("/api/chat-data/:chatId", async (req, res) => {
+  const { chatId } = req.params;
+  const { userId } = req.query;
+
+  try {
+    // Ensure the chat belongs to the user
+    const chat = await Chat.findOne({ _id: chatId, userId });
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found for this user",
+      });
+    }
+
+    // Fetch subchats for the chat
+    const subChats = await SubChat.findOne({ chatId });
+
+    // Structure messages as an array of { user, text }
+    const formattedMessages = [];
+    if (subChats && subChats.messages.length > 0) {
+      subChats.messages.forEach((msg) => {
+        formattedMessages.push(
+          { user: "You", text: msg.question },
+          { user: "AI", text: msg.response }
+        );
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      chat: {
+        extractedText: chat.extractedText,
+      },
+      messages: formattedMessages, // Return formatted messages
+    });
+  } catch (error) {
+    console.error("Error fetching chat data:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch chat data",
+      error,
+    });
+  }
+});
+
+
+
 
 // Update the chat name after the first user message
 app.put("/api/update-chat/:chatId", async (req, res) => {

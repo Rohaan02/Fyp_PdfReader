@@ -28,6 +28,27 @@ const ChatWindow = ({
         className="flex-grow p-6 overflow-y-auto"
         style={{ height: "50vh" }} // Set a fixed height
       >
+        {/* <div className="space-y-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.user === "You" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-lg p-4 rounded-lg ${
+                  msg.user === "You"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-900"
+                }`}
+              >
+                <p>{msg.text}</p>
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div> */}
         <div className="space-y-4">
           {messages.map((msg, index) => (
             <div

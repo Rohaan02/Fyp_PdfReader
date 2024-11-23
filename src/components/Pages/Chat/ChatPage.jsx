@@ -8,6 +8,7 @@ const ChatPage = () => {
   const [chatTitles, setChatTitles] = useState([]);
   const [chatId, setChatId] = useState(null);
   const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
+  const [activeChatId, setActiveChatId] = useState(null);
 
   const fetchUploadedFilePaths = async () => {
     try {
@@ -188,8 +189,82 @@ const ChatPage = () => {
     setInput("");
   };
 
-  const handleSelectChat = (title) => {
-    console.log("Selected chat:", title);
+  // const handleSelectChat = async (chatId) => {
+  //   try {
+  //     setActiveChatId(chatId); // Set the active chat ID
+
+  //     const user = JSON.parse(localStorage.getItem("user"));
+  //     if (!user) {
+  //       console.error("User not found");
+  //       return;
+  //     }
+
+  //     // Fetch chat data (extracted text and subchats)
+  //     const response = await fetch(
+  //       `http://localhost:5000/api/chat-data/${chatId}?userId=${user._id}`
+  //     );
+  //     const data = await response.json();
+
+  //     if (data.success) {
+  //       setChatId(chatId); // Set the current chat ID for saving messages
+  //       setMessages(
+  //         data.subChats
+  //           .map((msg) => ({
+  //             user: "You",
+  //             text: msg.question,
+  //           }))
+  //           .concat(
+  //             data.subChats.map((msg) => ({
+  //               user: "AI",
+  //               text: msg.response,
+  //             }))
+  //           )
+  //       );
+
+  //       const extractedTextMessage = {
+  //         user: "AI",
+  //         text: `Extracted Text:\n\n${data.chat.extractedText}`,
+  //       };
+  //       setMessages((prevMessages) => [...prevMessages, extractedTextMessage]);
+  //     } else {
+  //       console.error("Failed to fetch chat data:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching selected chat:", error);
+  //   }
+  // };
+  const handleSelectChat = async (chatId) => {
+    try {
+      setActiveChatId(chatId); // Set the active chat ID
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        console.error("User not found");
+        return;
+      }
+
+      // Fetch chat data
+      const response = await fetch(
+        `http://localhost:5000/api/chat-data/${chatId}?userId=${user._id}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setChatId(chatId); // Set the current chat ID
+
+        // Combine extracted text and formatted subchat messages
+        const extractedTextMessage = {
+          user: "AI",
+          text: `Extracted Text:\n\n${data.chat.extractedText}`,
+        };
+
+        setMessages([extractedTextMessage, ...data.messages]); // Messages now have the correct order
+      } else {
+        console.error("Failed to fetch chat data:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching selected chat:", error);
+    }
   };
 
   useEffect(() => {
@@ -203,6 +278,7 @@ const ChatPage = () => {
         chatTitles={chatTitles}
         onSelectChat={handleSelectChat}
         refreshChats={fetchPreviousChats}
+        activeChatId={activeChatId}
       />
       <ChatWindow
         messages={messages}
