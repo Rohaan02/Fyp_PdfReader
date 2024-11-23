@@ -1,190 +1,148 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Feather, X } from "react-feather";
+import React, { useState } from 'react';
+import Sidebar from './Sidebar'; // Assuming Sidebar is reusable
+import { FaUpload, FaTrashAlt, FaCloudUploadAlt } from 'react-icons/fa'; // Import the icons
 
-function UploadFiles() {
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [uploadSessionId, setUploadSessionId] = useState(null); // Track session IDimport React, { useState } from "react";
-  const navigate = useNavigate();
+const UploadPDF = () => {
+  const [files, setFiles] = useState([]); // Manage uploaded files
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]); // Multiple files
 
-  useEffect(() => {
-    // Retrieve or initialize the user's upload session ID from local storage
-    const storedSessionId = localStorage.getItem("uploadSessionId");
-    setUploadSessionId(storedSessionId ? parseInt(storedSessionId) : 1);
-  }, []);
-
-  const getLoggedInUser = () => {
-    const user = localStorage.getItem("user")
-      ? JSON.parse(localStorage.getItem("user"))
-      : null;
-
-    return user ? { id: user._id, type: "User" } : "null";
+  const handleUploadClick = () => {
+    setShowUploadModal(true);
   };
 
-  const handleFileUpload = (newFiles) => {
-    const loggedInUser = getLoggedInUser(); // Get the logged-in user
-    if (loggedInUser === "null") {
-      // Check if user is not logged in
-      alert("User not found. Please log in.");
-      return;
+  const handleFileSelect = (event) => {
+    const uploadedFiles = Array.from(event.target.files); // Allow multiple file selection
+    setSelectedFiles(uploadedFiles);
+  };
+
+  const handleUploadFiles = () => {
+    if (selectedFiles.length > 0) {
+      setFiles([...files, ...selectedFiles]); // Add selected files to the existing list
+      setShowUploadModal(false); // Close the modal after files are added
+      setSelectedFiles([]); // Clear selected files after upload
     }
-
-    const pdfFiles = newFiles.filter((file) => {
-      if (file.type !== "application/pdf") {
-        alert(`${file.name} is not a PDF file.`);
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        // 5 MB limit
-        alert(`${file.name} exceeds the 5MB file size limit.`);
-        return false;
-      }
-      return true;
-    });
-
-    // Rename files with uploadSessionId, loggedInUser id, and original file name
-    const renamedFiles = pdfFiles.map((file) => {
-      const newFileName = `${uploadSessionId}_${loggedInUser.id}_${file.name}`; // Use loggedInUser.id here
-      return new File([file], newFileName, { type: file.type });
-    });
-
-    setFiles((prevFiles) => [...prevFiles, ...renamedFiles]);
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragging(true);
+  const handleDeleteFile = (fileToDelete) => {
+    setFiles(files.filter((file) => file !== fileToDelete)); // Remove file from the list
   };
 
-  const handleDragLeave = () => {
-    setDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const newFiles = Array.from(e.dataTransfer.files);
-    handleFileUpload(newFiles);
-  };
-
-  const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    handleFileUpload(newFiles);
-  };
-
-  const handleFileRemove = (index) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const handleContinue = async () => {
-    if (files.length === 0) {
-      alert("Please upload at least one PDF file.");
-      return;
-    }
-
-    setLoading(true);
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
-
-    // Fetch logged-in user information
-    const loggedInUser = getLoggedInUser();
-    if (!loggedInUser || !loggedInUser.id) {
-      alert("User not found, Please Login.");
-      setLoading(false);
-      return;
-    }
-
-    formData.append("userId", loggedInUser.id);
-    formData.append("userType", loggedInUser.type);
-
-    try {
-      const response = await fetch("http://localhost:5000/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json(); // Assuming the server responds with the file paths
-        if (data.filePaths) {
-          // Save the file paths to local storage
-          localStorage.setItem(
-            "recentUploadedFilePath",
-            JSON.stringify(data.filePaths)
-          );
-        }
-        setLoading(false);
-        navigate("/chat");
-      } else {
-        setLoading(false);
-        alert("File upload failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setLoading(false);
-      alert("Server error. Please try again later.");
-    }
+  const handleFinalUploadAction = () => {
+    // Define the action that happens when the user clicks on the "Upload Files" button
+    console.log('Final files uploaded:', files);
+    alert('Files have been uploaded successfully!');
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center p-5">
-      <div
-        className={`w-3/4 p-6 text-center border-2 border-dashed rounded-lg cursor-pointer 
-          ${
-            dragging
-              ? "border-blue-500 bg-blue-100"
-              : "border-gray-300 hover:bg-gray-100"
-          }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          id="file-upload"
-          multiple
-          accept=".pdf"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        <label htmlFor="file-upload" className="cursor-pointer">
-          <p className="mb-2 text-lg font-semibold">
-            Upload a File "PDF Format"
-          </p>
-          <p className="text-gray-500">
-            Drag and drop files here, or click to select files
-          </p>
-        </label>
-      </div>
+      <div className="min-h-screen flex bg-gray-100">
+        {/* Sidebar */}
+        <Sidebar />
 
-      <div className="flex flex-wrap justify-center gap-4 mt-5 w-3/4">
-        {files.map((file, index) => (
-          <div
-            key={index}
-            className="relative p-4 text-center bg-gray-100 rounded-lg shadow"
-          >
-            <p className="mb-2 text-sm font-medium">{file.name}</p>
-            <X
-              className="absolute top-1 right-1 cursor-pointer text-red-500 hover:text-red-900"
-              onClick={() => handleFileRemove(index)}
-              size={24}
-            />
+        {/* Main Content */}
+        <div className="flex-grow p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">PDF Files</h1>
+
+            {/* Upload Files Button - only shown when files are uploaded */}
+            {files.length > 0 && (
+                <button
+                    onClick={handleFinalUploadAction}
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 flex items-center"
+                >
+                  <FaUpload className="mr-2" /> Upload Files {/* Upload Icon */}
+                </button>
+            )}
           </div>
-        ))}
+
+          {/* File List or Empty State */}
+          {files.length === 0 ? (
+              <div className="text-center mt-12">
+                <p className="text-gray-600 text-xl">No project files</p>
+                <p className="text-gray-400 mb-4">Lorem ipsum dolor is simply dummy text.</p>
+                <button
+                    onClick={handleUploadClick}
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                >
+                  Upload File
+                </button>
+              </div>
+          ) : (
+              <div className="grid grid-cols-4 gap-4">
+                {files.map((file, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between">
+                          <span>{file.name}</span>
+                          <button
+                              onClick={() => handleDeleteFile(file)}
+                              className="text-red-500 hover:text-red-600"
+                          >
+                            <FaTrashAlt />
+                          </button>
+                        </div>
+                        <p className="text-gray-500 text-sm">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                      </div>
+                    </div>
+                ))}
+              </div>
+          )}
+
+          {/* Upload File Modal */}
+          {showUploadModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+                  <h2 className="text-2xl font-bold mb-4">Upload Files</h2>
+                  <div className="border-dashed border-2 p-6 rounded-lg text-center">
+                    <input
+                        type="file"
+                        className="hidden"
+                        id="fileInput"
+                        multiple
+                        onChange={handleFileSelect}
+                    />
+                    <label
+                        htmlFor="fileInput"
+                        className="cursor-pointer text-blue-500 underline flex flex-col items-center"
+                    >
+                      {/* Adding the upload cloud icon */}
+                      <FaCloudUploadAlt className="text-5xl mb-2" />
+                      Drag & drop files or <span className="text-blue-500 underline">Browse</span>
+                    </label>
+                    <p className="text-gray-500 mt-2">Supported formats: PDF</p>
+                    {selectedFiles.length > 0 && (
+                        <div className="mt-4">
+                          {selectedFiles.map((file, index) => (
+                              <div key={index} className="flex justify-between items-center mb-2">
+                                <p>{file.name}</p>
+                                <p className="text-sm text-gray-500">
+                                  {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                </p>
+                              </div>
+                          ))}
+                        </div>
+                    )}
+                  </div>
+                  <div className="mt-4 flex justify-end space-x-4">
+                    <button
+                        onClick={() => setShowUploadModal(false)}
+                        className="py-2 px-4 border rounded"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                        onClick={handleUploadFiles}
+                        className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+          )}
+        </div>
       </div>
-
-      <button
-        onClick={handleContinue}
-        disabled={loading}
-        className={`mt-5 px-6 py-2 rounded-lg text-white ${
-          loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-700"
-        }`}
-      >
-        {loading ? "Uploading..." : "Upload"}
-      </button>
-    </div>
   );
-}
+};
 
-export default UploadFiles;
+export default UploadPDF;

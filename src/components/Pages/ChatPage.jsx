@@ -1,199 +1,190 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from 'react';
+import {
+  FaPaperPlane,
+  FaRegCopy,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaEdit,
+} from 'react-icons/fa'; // Import necessary icons
+import Sidebar from './Sidebar';
 
-function ChatPage() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [inputWidth, setInputWidth] = useState("100%");
-  const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
+const ChatPage = () => {
+  const [messages, setMessages] = useState([
+    { sender: 'bot', text: 'Hello! How can I assist you today?' },
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [editingPromptIndex, setEditingPromptIndex] = useState(null); // Index of the message being edited
+  const [isEditing, setIsEditing] = useState(false); // Is the user currently editing a message
 
-  // Create a ref for the messages container
-  const messagesEndRef = useRef(null);
-
-  const fetchUploadedFilePaths = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user")); // Assuming user is stored in localStorage
-      if (!user) {
-        console.error("User not found");
-        return;
-      }
-
-      const response = await fetch(
-        `http://localhost:5000/api/get-file-paths?userId=${user._id}&userType=User`
-      );
-      const data = await response.json();
-
-      if (data.success && data.filePaths.length > 0) {
-        // Show all file paths from the last entry
-        const allFilePaths = data.filePaths.join("\n"); // Join the array into a string
-        const extractedText = data.extractedTextFromPDF.join("\n"); // Join extracted text into a string
-
-        setRecentUploadedFilePath(allFilePaths); // Update to store all file paths
-        console.log(allFilePaths);
-
-        // Construct the bot message
-        const botMessage = {
-          user: "AI",
-          text: `You have uploaded the following files:\n\n${allFilePaths}\n\nExtracted Text from PDFs:\n\n${extractedText}`, // Include extracted text after file paths
-        };
-
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
+  // Handle sending or updating a message
+  const handleSendMessage = () => {
+    if (inputMessage.trim()) {
+      if (isEditing) {
+        // If editing, update the existing message
+        const updatedMessages = [...messages];
+        updatedMessages[editingPromptIndex].text = inputMessage;
+        setMessages(updatedMessages);
+        setIsEditing(false); // Exit edit mode
+        setEditingPromptIndex(null);
       } else {
-        const noFilesMessage = {
-          user: "AI",
-          text: "No recent file uploads found.",
-        };
-        setMessages((prevMessages) => [...prevMessages, noFilesMessage]);
-      }
-    } catch (error) {
-      console.error("Error fetching file paths:", error);
-      const errorMessage = {
-        user: "AI",
-        text: "An error occurred while fetching your uploaded files.",
-      };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
-    }
-  };
+        // Add user message to chat
+        setMessages([...messages, { sender: 'user', text: inputMessage }]);
+        setInputMessage(''); // Clear input after sending
 
-  useEffect(() => {
-    fetchUploadedFilePaths();
-  }, []);
-
-  const handleSendMessage = async () => {
-    if (input.trim() === "") {
-      console.error("Message cannot be empty.");
-      return;
-    }
-
-    const newMessage = { user: "You", text: input };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-    // If file path is available, extract data from the uploaded file
-    if (recentUploadedFilePath) {
-      try {
-        const response = await fetch("/api/extract-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ filePath: recentUploadedFilePath }),
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          console.log("Extracted data:", data.extractedData);
-          const botMessage = { user: "AI", text: data.extractedData };
-          setMessages((prevMessages) => [...prevMessages, botMessage]);
-        } else {
-          console.error("Data extraction failed.");
-          const errorMessage = {
-            user: "AI",
-            text: "Failed to extract data from the file.",
-          };
-          setMessages((prevMessages) => [...prevMessages, errorMessage]);
-        }
-      } catch (error) {
-        console.error("Error extracting data:", error);
-        const errorMessage = {
-          user: "AI",
-          text: "An error occurred while processing your request.",
-        };
-        setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      }
-    } else {
-      // If no file path is available, just simulate a bot response
-      const simulatedResponse = { user: "AI", text: "No file uploaded." };
-      setMessages((prevMessages) => [...prevMessages, simulatedResponse]);
-    }
-
-    // Clear the input
-    setInput("");
-    setInputWidth("100%");
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      if (!e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage();
-      } else {
-        setInputWidth((prevWidth) => (prevWidth === "100%" ? "150%" : "100%"));
+        // Simulate bot response (you can replace this with actual API call)
+        setTimeout(() => {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { sender: 'bot', text: "Here's a response to your message!" },
+          ]);
+        }, 1000);
       }
     }
   };
 
-  // Scroll to the bottom of the messages container when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // Handle pressing Enter to send or update
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      handleSendMessage(); // Send or update message on pressing Enter
+    }
+  };
+
+  // Start editing a message (same as ChatGPT)
+  const handleEditPrompt = (index) => {
+    setEditingPromptIndex(index); // Store the index of the message being edited
+    setInputMessage(messages[index].text); // Set the input field to the existing message text
+    setIsEditing(true); // Enter edit mode
+  };
+
+  // Cancel editing the message
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingPromptIndex(null);
+    setInputMessage(''); // Clear the input field
+  };
+
+  // Copy the bot's response
+  const handleCopyResponse = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('Response copied to clipboard!');
+  };
 
   return (
-    <div className="flex flex-1 bg-gray-100">
-      {/* Left side - Chat Titles */}
-      <div className="w-1/5 bg-white shadow-lg overflow-y-auto">
-        <div className="p-4">
-          <div className="flex justify-end">
-            <button className="bg-black text-white font-bold p-2 rounded mb-2">
+      <div className="min-h-screen flex bg-gray-100">
+        {/* Sidebar */}
+        <Sidebar />
+
+        {/* Main Chat Area */}
+        <div className="flex-grow flex flex-col p-6 bg-white">
+          {/* New Chat Button */}
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Chat</h1>
+            <button
+                onClick={() => setMessages([{ sender: 'bot', text: 'Hello! How can I assist you today?' }])}
+                className="flex items-center bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300"
+            >
               New Chat
             </button>
           </div>
-          <div className="text-gray-900 mb-2 font-bold">Today</div>
-          <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
-          <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
-          <div className="text-gray-900 mb-2 font-bold">Yesterday</div>
-          <div className="bg-gray-200 p-2 rounded mb-2">Chat Title</div>
-          <div className="bg-gray-200 p-2 rounded">Chat Title</div>
-        </div>
-      </div>
 
-      {/* Right side - Chat Window */}
-      <div className="w-4/5 flex flex-col bg-white shadow-lg rounded-lg overflow-hidden">
-        {/* Messages area */}
-        <div
-          className="flex-grow p-6 overflow-y-auto"
-          style={{ height: "50vh" }} // Set a fixed height
-        >
-          <div className="space-y-4">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${msg.user === "You" ? "justify-end" : "justify-start"
-                  }`}
-              >
+          {/* Chat Messages */}
+          <div className="flex-grow overflow-y-auto p-4 border rounded-lg bg-gray-50 shadow-md mb-4">
+            {messages.map((message, index) => (
                 <div
-                  className={`max-w-lg p-4 rounded-lg ${msg.user === "You"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-900"
-                    }`}
+                    key={index}
+                    className={`mb-4 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p>{msg.text}</p>
+                  <div className="max-w-lg p-3 rounded-lg bg-white shadow relative flex">
+                    {/* Edit Icon on the Left */}
+                    {message.sender === 'user' && (
+                        <button
+                            className="flex items-center text-gray-500 hover:text-yellow-500 mr-2"
+                            onClick={() => handleEditPrompt(index)}
+                        >
+                          <FaEdit /> {/* Edit Prompt */}
+                        </button>
+                    )}
+
+                    {/* Conditionally render either the message or input field */}
+                    {isEditing && editingPromptIndex === index ? (
+                        <div className="flex flex-col w-full">
+                    <textarea
+                        className="w-full p-3 border rounded-lg"
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                    />
+                          <div className="flex justify-end mt-2 space-x-3">
+                            <button
+                                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                onClick={handleSendMessage}
+                            >
+                              Send
+                            </button>
+                          </div>
+                        </div>
+                    ) : (
+                        <div className="w-full">
+                          <div
+                              className={`${
+                                  message.sender === 'user'
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-gray-200 text-black'
+                              } p-3 rounded-lg`}
+                          >
+                            {message.text}
+                          </div>
+
+                          {/* Action Buttons for Bot Responses */}
+                          {message.sender === 'bot' && (
+                              <div className="flex space-x-3 mt-2 text-gray-500">
+                                <button
+                                    className="flex items-center hover:text-green-500"
+                                    onClick={() => handleCopyResponse(message.text)}
+                                >
+                                  <FaRegCopy /> {/* Copy */}
+                                </button>
+                                <button className="flex items-center hover:text-green-500">
+                                  <FaThumbsUp /> {/* Good Response */}
+                                </button>
+                                <button className="flex items-center hover:text-red-500">
+                                  <FaThumbsDown /> {/* Bad Response */}
+                                </button>
+                              </div>
+                          )}
+                        </div>
+                    )}
+                  </div>
                 </div>
-              </div>
             ))}
-            {/* Add a div to act as the bottom of the messages area */}
-            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Field and Send/Update Button */}
+          <div className="flex items-center border-t pt-4">
+            <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type a message..."
+                className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mr-4"
+            />
+            <button
+                onClick={handleSendMessage}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+            >
+              <FaPaperPlane className="mr-2" />
+              {isEditing ? 'Update' : 'Send'}
+            </button>
           </div>
         </div>
-
-        {/* Input area */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Send a message..."
-            style={{ width: inputWidth }}
-            className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-          <button
-            onClick={handleSendMessage}
-            className="ml-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Send
-          </button>
-        </div>
       </div>
-    </div>
   );
-}
+};
 
 export default ChatPage;
