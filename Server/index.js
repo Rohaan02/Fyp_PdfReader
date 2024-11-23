@@ -92,9 +92,6 @@ app.get("/api/get-file-paths", async (req, res) => {
     // Get the last entry in the files array
     const lastEntryFiles = files[files.length - 1].files;
 
-    // Ensure the file paths are only logged once
-    // console.log("File paths:", lastEntryFiles);
-
     const extractedTextFromPDF = [];
 
     // Create a function to handle the Python process for each file path
@@ -126,9 +123,6 @@ app.get("/api/get-file-paths", async (req, res) => {
     for (const filePath of lastEntryFiles) {
       const extractedText = await extractTextFromPDF(filePath);
       extractedTextFromPDF.push(extractedText);
-
-      // Log the extracted text for each file once
-      // console.log(`Extracted text for ${filePath}:`, extractedText);
     }
 
     // Send response after all PDF data is extracted
@@ -312,39 +306,6 @@ app.delete("/api/chats/:chatId", async (req, res) => {
   }
 });
 
-// // Fetch chat data with subchats
-// app.get("/api/chat-data/:chatId", async (req, res) => {
-//   const { chatId } = req.params;
-//   const { userId } = req.query;
-
-//   try {
-//     // Ensure the chat belongs to the user
-//     const chat = await Chat.findOne({ _id: chatId, userId });
-
-//     if (!chat) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Chat not found for this user",
-//       });
-//     }
-
-//     // Fetch subchats for the chat
-//     const subChats = await SubChat.findOne({ chatId });
-
-//     res.status(200).json({
-//       success: true,
-//       chat,
-//       subChats: subChats ? subChats.messages : [],
-//     });
-//   } catch (error) {
-//     console.error("Error fetching chat data:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch chat data",
-//       error,
-//     });
-//   }
-// });
 // Fetch chat data with subchats
 app.get("/api/chat-data/:chatId", async (req, res) => {
   const { chatId } = req.params;
@@ -547,6 +508,12 @@ app.get("/api/subchats/:chatId", async (req, res) => {
 });
 
 // Start the server
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`\n`);
+  console.log(`|----------------------------------------------|`);
+  console.log(`|  🚀 Server is up and running on port: ${PORT}   |`);
+  console.log(`|  🌟 Visit: http://localhost:${PORT}             |`);
+  console.log(`|----------------------------------------------|`);
 });
