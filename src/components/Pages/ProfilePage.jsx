@@ -1,301 +1,370 @@
 import React, { useState, useEffect } from "react";
-import { FaUser, FaLock, FaUpload, FaSave, FaSync } from "react-icons/fa";
+import axios from "axios"; // Import axios for API calls
+import { FaUser, FaLock } from "react-icons/fa";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-const ProfilePage = () => {
+const Profile = () => {
+  const [userData, setUserData] = useState(null);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
-  const [firstName, setFirstName] = useState("John");
-  const [lastName, setLastName] = useState("Doe");
-  const [email, setEmail] = useState("johndoe@gmail.com");
-  const [gender, setGender] = useState("Male");
-  const [profileImage, setProfileImage] = useState(null);
+  const [showPassword, setShowPassword] = useState({
+    oldPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
+  const [userAvatar, setUserAvatar] = useState(null);
 
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Cleanup URL.createObjectURL to prevent memory leaks
   useEffect(() => {
-    return () => {
-      if (profileImage) {
-        URL.revokeObjectURL(profileImage);
+    const localStorageData = localStorage.getItem("user");
+    if (localStorageData) {
+      const parsedData = JSON.parse(localStorageData);
+      parsedData.newEmail = parsedData.email;
+      setUserData(parsedData);
+      setIsGoogleUser(!!parsedData.googleId);
+
+      if (!parsedData.googleId) {
+        const avatar = localStorage.getItem("userAvatar");
+        setUserAvatar(avatar);
       }
-    };
-  }, [profileImage]);
+    }
+  }, []);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfileImage(URL.createObjectURL(file));
+  const togglePasswordVisibility = (field) => {
+    setShowPassword((prevState) => ({
+      ...prevState,
+      [field]: !prevState[field],
+    }));
+  };
+
+  const saveUserData = async () => {
+    if (!isGoogleUser && userData) {
+      try {
+        const payload = {
+          email: userData.email, // Current email
+          username: userData.username,
+        };
+
+        // Check if a new email is provided
+        if (userData.newEmail) {
+          payload.newEmail = userData.newEmail; // Include new email
+        }
+
+        // Check if a new password is provided
+        if (userData.oldPassword && userData.newPassword) {
+          payload.password = userData.newPassword; // Include new password
+        }
+
+        const response = await axios.put(
+          "http://localhost:5000/auth/update-user",
+          payload
+        );
+
+        if (response.data.success) {
+          // Update localStorage and state
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              ...userData,
+              email: payload.newEmail || userData.email,
+            })
+          );
+          alert("Profile updated successfully!");
+        } else {
+          alert("Failed to update profile. " + response.data.message);
+        }
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("An error occurred while updating the profile.");
+      }
     }
   };
 
-  const handleReset = () => {
-    setFirstName("John");
-    setLastName("Doe");
-    setEmail("johndoe@gmail.com");
-    setGender("Male");
-    setProfileImage(null);
-  };
-
-  const handleSave = () => {
-    if (!firstName || !lastName || !email || !gender) {
-      alert("Please fill in all the fields.");
-      return;
-    }
-
-    alert("Profile information saved successfully!");
-    console.log("Profile saved:", {
-      firstName,
-      lastName,
-      email,
-      gender,
-      profileImage,
-    });
-  };
-
-  const handlePasswordSave = () => {
-    if (newPassword !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      alert("Please fill in all the password fields.");
-      return;
-    }
-
-    alert("Password changed successfully!");
-    console.log("Password Changed:", { oldPassword, newPassword });
-
-    setOldPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  };
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg font-semibold text-gray-600">
+          Loading profile...
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex">
-      <div className="flex-grow p-8">
-        <div className="bg-white p-6 shadow-md rounded-lg">
-          <h1 className="text-2xl font-bold mb-6">Profile</h1>
-          <p className="text-gray-600 mb-6">
-            Lorem ipsum dolor is simply dummy text.
-          </p>
-
-          <div className="flex items-start">
-            <div className="w-1/4">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center">
+      <div className="w-full max-w-4xl p-8 bg-white shadow-lg rounded-lg mt-10">
+        <div className="flex">
+          {/* Sidebar */}
+          <div className="w-1/4 border-r-2 pr-6">
+            <h3 className="text-lg font-semibold mb-4">Profile</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Welcome to your profile! Here you can view and manage your
+              personal information.
+            </p>
+            <nav className="space-y-4">
               <button
-                onClick={() => setActiveTab("general")}
-                className={`flex items-center mb-4 p-2 rounded-lg ${
+                className={`flex items-center space-x-2 w-full font-semibold ${
                   activeTab === "general"
-                    ? "bg-blue-100 text-blue-500 font-bold"
-                    : "text-gray-500 hover:text-blue-500"
+                    ? "text-blue-500"
+                    : "text-gray-600 hover:text-blue-500"
                 }`}
+                onClick={() => setActiveTab("general")}
               >
-                <FaUser className="mr-2" /> General
+                <FaUser className="text-xl" />
+                <span>General</span>
               </button>
-              <button
-                onClick={() => setActiveTab("password")}
-                className={`flex items-center p-2 rounded-lg ${
-                  activeTab === "password"
-                    ? "bg-blue-100 text-blue-500 font-bold"
-                    : "text-gray-500 hover:text-blue-500"
-                }`}
-              >
-                <FaLock className="mr-2" /> Change Password
-              </button>
-            </div>
+              {!isGoogleUser && (
+                <button
+                  className={`flex items-center space-x-2 w-full font-semibold ${
+                    activeTab === "changePassword"
+                      ? "text-blue-500"
+                      : "text-gray-600 hover:text-blue-500"
+                  }`}
+                  onClick={() => setActiveTab("changePassword")}
+                >
+                  <FaLock className="text-xl" />
+                  <span>Change Password</span>
+                </button>
+              )}
+            </nav>
+          </div>
 
-            {/* Content depending on the active tab */}
-            <div className="w-3/4">
-              {activeTab === "general" && (
-                <>
-                  <div className="flex items-center justify-start mb-8">
-                    {/* Profile Image Upload */}
-                    <div className="relative">
-                      <div className="w-32 h-32 bg-gray-300 rounded-full flex items-center justify-center">
-                        {profileImage ? (
-                          <img
-                            src={profileImage}
-                            alt="Profile"
-                            className="rounded-full w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-gray-500">150 x 150</span>
-                        )}
-                      </div>
-                      <label
-                        htmlFor="upload"
-                        className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer"
-                      >
-                        <FaUpload />
+          {/* Profile Content */}
+          <div className="w-3/4 pl-6">
+            {activeTab === "general" && (
+              <div>
+                {/* Avatar Section */}
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={
+                      isGoogleUser
+                        ? userData.avatar
+                        : userAvatar || "https://via.placeholder.com/150"
+                    }
+                    alt="User Avatar"
+                    className="w-24 h-24 rounded-full border object-cover"
+                  />
+                  <div>
+                    <p className="text-lg font-medium">
+                      {isGoogleUser
+                        ? userData.name
+                        : userData.username || "Unknown User"}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Welcome to your profile!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Form Section */}
+                <form className="mt-8 space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* First Name / Username */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">
+                        {isGoogleUser ? "First Name" : "Username"}
                       </label>
                       <input
-                        id="upload"
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageUpload}
+                        type="text"
+                        value={
+                          isGoogleUser
+                            ? userData.name.split(" ")[0]
+                            : userData.username
+                        }
+                        onChange={(e) => {
+                          if (!isGoogleUser) {
+                            setUserData({
+                              ...userData,
+                              username: e.target.value,
+                            });
+                          }
+                        }}
+                        className="mt-1 w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        readOnly={isGoogleUser}
                       />
                     </div>
 
-                    {/* Profile Form */}
-                    <div className="ml-8 w-full">
-                      <div className="mb-4">
-                        <label
-                          htmlFor="firstName"
-                          className="block font-bold mb-2"
-                        >
-                          First Name
-                        </label>
-                        <input
-                          id="firstName"
-                          type="text"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className="border border-gray-300 p-2 rounded w-full"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label
-                          htmlFor="lastName"
-                          className="block font-bold mb-2"
-                        >
+                    {/* Last Name (Google Users Only) */}
+                    {isGoogleUser && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">
                           Last Name
                         </label>
                         <input
-                          id="lastName"
                           type="text"
-                          value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
-                          className="border border-gray-300 p-2 rounded w-full"
+                          value={userData.name.split(" ")[1] || ""}
+                          className="mt-1 w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          readOnly
                         />
                       </div>
-                      <div className="mb-4">
-                        <label htmlFor="email" className="block font-bold mb-2">
-                          Email Address
-                        </label>
-                        <input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="border border-gray-300 p-2 rounded w-full"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label
-                          htmlFor="gender"
-                          className="block font-bold mb-2"
-                        >
-                          Gender
-                        </label>
-                        <select
-                          id="gender"
-                          value={gender}
-                          onChange={(e) => setGender(e.target.value)}
-                          className="border border-gray-300 p-2 rounded w-full"
-                        >
-                          <option>Male</option>
-                          <option>Female</option>
-                        </select>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex justify-end">
-                        <button
-                          onClick={handleReset}
-                          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mr-2"
-                        >
-                          <FaSync className="inline mr-2" />
-                          Reset
-                        </button>
-                        <button
-                          onClick={handleSave}
-                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        >
-                          <FaSave className="inline mr-2" />
-                          Save
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
-                  <p className="text-gray-400 text-sm">
-                    Allowed JPG, GIF, or PNG. Max size of 800KB
-                  </p>
-                </>
-              )}
-
-              {activeTab === "password" && (
-                <>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="oldPassword"
-                      className="block font-bold mb-2"
-                    >
-                      Old Password
+                  {/* Email Address */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Email Address
                     </label>
                     <input
-                      id="oldPassword"
-                      type="password"
-                      value={oldPassword}
-                      onChange={(e) => setOldPassword(e.target.value)}
-                      className="border border-gray-300 p-2 rounded w-full"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="newPassword"
-                      className="block font-bold mb-2"
-                    >
-                      New Password
-                    </label>
-                    <input
-                      id="newPassword"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="border border-gray-300 p-2 rounded w-full"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="confirmPassword"
-                      className="block font-bold mb-2"
-                    >
-                      Confirm Password
-                    </label>
-                    <input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="border border-gray-300 p-2 rounded w-full"
-                    />
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => {
-                        setOldPassword("");
-                        setNewPassword("");
-                        setConfirmPassword("");
+                      type="email"
+                      value={userData.newEmail}
+                      onChange={(e) => {
+                        if (!isGoogleUser) {
+                          setUserData({
+                            ...userData,
+                            newEmail: e.target.value,
+                          });
+                        }
                       }}
-                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 mr-2"
-                    >
-                      <FaSync className="inline mr-2" />
-                      Reset
-                    </button>
+                      className="mt-1 w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      readOnly={isGoogleUser}
+                    />
+                  </div>
+                </form>
+
+                {/* Save Button */}
+                {!isGoogleUser && (
+                  <div className="flex space-x-4 mt-6">
                     <button
-                      onClick={handlePasswordSave}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      type="button"
+                      className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                      onClick={saveUserData}
                     >
-                      <FaSave className="inline mr-2" />
                       Save
                     </button>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </div>
+            )}
+
+            {/* Password Change Tab */}
+            {activeTab === "changePassword" && (
+              <div>
+                <h3 className="text-xl font-semibold mb-4">Change Password</h3>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (userData.newPassword !== userData.confirmPassword) {
+                      alert("Passwords do not match!");
+                      return;
+                    }
+                    saveUserData();
+                  }}
+                  className="grid grid-cols-2 gap-6"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Old Password
+                    </label>
+                    <div className="flex items-center border rounded-md px-4 py-2">
+                      <input
+                        type={showPassword.oldPassword ? "text" : "password"}
+                        value={userData.oldPassword || ""}
+                        onChange={(e) =>
+                          setUserData({
+                            ...userData,
+                            oldPassword: e.target.value,
+                          })
+                        }
+                        className="flex-1 outline-none"
+                        placeholder="Enter old password"
+                      />
+                      <button
+                        type="button"
+                        className="text-gray-400"
+                        onClick={() => togglePasswordVisibility("oldPassword")}
+                      >
+                        {showPassword.oldPassword ? (
+                          <AiOutlineEyeInvisible />
+                        ) : (
+                          <AiOutlineEye />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      New Password
+                    </label>
+                    <div className="flex items-center border rounded-md px-4 py-2">
+                      <input
+                        type={showPassword.newPassword ? "text" : "password"}
+                        value={userData.newPassword || ""}
+                        onChange={(e) =>
+                          setUserData({
+                            ...userData,
+                            newPassword: e.target.value,
+                          })
+                        }
+                        className="flex-1 outline-none"
+                        placeholder="Enter new password"
+                      />
+                      <button
+                        type="button"
+                        className="text-gray-400"
+                        onClick={() => togglePasswordVisibility("newPassword")}
+                      >
+                        {showPassword.newPassword ? (
+                          <AiOutlineEyeInvisible />
+                        ) : (
+                          <AiOutlineEye />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Confirm Password
+                    </label>
+                    <div className="flex items-center border rounded-md px-4 py-2">
+                      <input
+                        type={
+                          showPassword.confirmPassword ? "text" : "password"
+                        }
+                        value={userData.confirmPassword || ""}
+                        onChange={(e) =>
+                          setUserData({
+                            ...userData,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                        className="flex-1 outline-none"
+                        placeholder="Confirm new password"
+                      />
+                      <button
+                        type="button"
+                        className="text-gray-400"
+                        onClick={() =>
+                          togglePasswordVisibility("confirmPassword")
+                        }
+                      >
+                        {showPassword.confirmPassword ? (
+                          <AiOutlineEyeInvisible />
+                        ) : (
+                          <AiOutlineEye />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 flex justify-end space-x-4">
+                    <button
+                      type="reset"
+                      className="py-2 px-6 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="submit"
+                      className="py-2 px-6 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -303,4 +372,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default Profile;

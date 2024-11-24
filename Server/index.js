@@ -168,6 +168,52 @@ app.post("/auth/form-signup", async (req, res) => {
   }
 });
 
+app.put("/auth/update-user", async (req, res) => {
+  try {
+    const { email, username, newEmail, password } = req.body;
+
+    // Check if the user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Check if the new email is already in use
+    if (newEmail && newEmail !== email) {
+      const emailExists = await User.findOne({ email: newEmail });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "The new email is already in use by another user.",
+        });
+      }
+      user.email = newEmail; // Update email
+    }
+    // Update the username if provided
+    if (username) {
+      user.username = username;
+    }
+
+    // Update the password if provided
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: { email: user.email, username: user.username },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error });
+  }
+});
+
+
 // Login route
 app.post("/auth/form-login", async (req, res) => {
   try {
