@@ -43,7 +43,6 @@ const upload = multer({ storage });
 
 module.exports = upload;
 
-
 // File upload route
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
@@ -175,7 +174,9 @@ app.put("/auth/update-user", async (req, res) => {
     // Check if the user exists
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Check if the new email is already in use
@@ -212,7 +213,6 @@ app.put("/auth/update-user", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 });
-
 
 // Login route
 app.post("/auth/form-login", async (req, res) => {
@@ -256,10 +256,22 @@ app.post("/api/create-chat", async (req, res) => {
     const { userId, filenames, extractedText } = req.body;
 
     // Ensure that userId, filenames, and extractedText are provided
-    if (!userId || !filenames || !extractedText) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "Missing userId, filenames, or extractedText",
+        message: "Missing userId",
+      });
+    }
+    if (!filenames) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing filenames",
+      });
+    }
+    if (!extractedText) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing extractedText",
       });
     }
 
@@ -267,7 +279,7 @@ app.post("/api/create-chat", async (req, res) => {
     const newChat = new Chat({
       userId,
       filenames,
-      extractedText,  // Saving extracted text directly in chat
+      extractedText, // Saving extracted text directly in chat
     });
 
     await newChat.save();
@@ -399,9 +411,6 @@ app.get("/api/chat-data/:chatId", async (req, res) => {
   }
 });
 
-
-
-
 // Update the chat name after the first user message
 app.put("/api/update-chat/:chatId", async (req, res) => {
   try {
@@ -418,7 +427,7 @@ app.put("/api/update-chat/:chatId", async (req, res) => {
     }
 
     chat.chatName = chatName;
-    chat.extractedText = extractedText;  // Update the extracted text if needed
+    chat.extractedText = extractedText; // Update the extracted text if needed
     await chat.save();
 
     res.status(200).json({
@@ -435,7 +444,6 @@ app.put("/api/update-chat/:chatId", async (req, res) => {
     });
   }
 });
-
 
 // Create a subchat (message) linked to a chat
 app.post("/api/create-subchat", async (req, res) => {
@@ -497,8 +505,6 @@ app.post("/api/create-subchat", async (req, res) => {
   }
 });
 
-
-
 // Fetch all chats for the logged-in user, including extracted text
 app.get("/api/chats/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -519,7 +525,6 @@ app.get("/api/chats/:userId", async (req, res) => {
     });
   }
 });
-
 
 // Fetch all subchats for a specific chatId
 app.get("/api/subchats/:chatId", async (req, res) => {
