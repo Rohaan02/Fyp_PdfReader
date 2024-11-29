@@ -175,7 +175,6 @@ const ChatPage = () => {
       const data = await subChatResponse.json();
       if (data.success) {
         console.log("Subchat created:", data.subChat);
-        toast.success("Subchat created");
       } else {
         console.error("Failed to create subchat:", data.message);
         toast.error("Failed to create subchat:");
@@ -187,18 +186,43 @@ const ChatPage = () => {
   };
 
   const handleSendMessage = async () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "") return; // Prevent sending empty messages
 
+    // Add user's message to chat
     const newMessage = { user: "You", text: input };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-    const botResponse = { user: "AI", text: "response from ai" };
-    setMessages((prevMessages) => [...prevMessages, botResponse]);
+    try {
+      // Send the user's input to the backend to get the AI's response
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: input }), // Send user input to OpenAI
+      });
 
-    if (chatId) {
-      createSubChat(input, "response from ai", chatId);
+      const data = await response.json();
+
+      if (data.success && data.response) {
+        // Add the AI's response to chat
+        const aiMessage = { user: "AI", text: data.response };
+        setMessages((prevMessages) => [...prevMessages, aiMessage]);
+
+        // Create subchat with the question and AI's response (if a chatId exists)
+        if (chatId) {
+          createSubChat(input, data.response, chatId);
+        }
+      } else {
+        console.error("Failed to get response from OpenAI:", data.error);
+        toast.error("Error fetching AI response.");
+      }
+    } catch (error) {
+      console.error("Error in handleSendMessage:", error);
+      toast.error("An error occurred while fetching AI response.");
     }
 
+    // Clear input field after sending message
     setInput("");
   };
 

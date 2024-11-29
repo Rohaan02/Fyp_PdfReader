@@ -4,6 +4,18 @@ const User = require("./models/User"); // Import the User model
 const FilesPath = require("./models/FilesPath"); // Import the FilesPath model
 const Chat = require("./models/Chat"); // Import the Chat model
 const SubChat = require("./models/SubChats"); // Import the SubChats model
+const { OpenAI } = require("openai"); // Import the OpenAI SDK
+require("dotenv").config();
+
+// Check if the API key is set
+if (!process.env.OPENAI_API_KEY) {
+  console.error("OPENAI_API_KEY is missing in the .env file.");
+  process.exit(1); // Exit if the key is missing
+}
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Use the OpenAI API key from the .env file
+  model: process.env.GPT_MODEL || "gpt-4-turbo", // Optionally, use the GPT model from .env or fallback to 'gpt-4-turbo'
+});
 
 const bcrypt = require("bcrypt");
 const cors = require("cors");
@@ -555,6 +567,30 @@ app.get("/api/subchats/:chatId", async (req, res) => {
       message: "Failed to fetch subchats",
       error,
     });
+  }
+});
+
+app.post("/api/chat", async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Prompt is required." });
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo", // or gpt-4
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const aiResponse = response.choices[0].message.content.trim();
+
+    res.json({ success: true, response: aiResponse });
+  } catch (error) {
+    console.error("Error from OpenAI:", error.message);
+    res
+      .status(500)
+      .json({ success: false, error: "Error communicating with OpenAI API" });
   }
 });
 
