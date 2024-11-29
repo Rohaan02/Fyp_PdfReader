@@ -126,3 +126,6 @@ and installed by running this command "npm install react-icons"
 
 For toast notifications:-
 npm install --save react-toastify
+
+to get the data from the server/.env file:
+npm install dotenv
