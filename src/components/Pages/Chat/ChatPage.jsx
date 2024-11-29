@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
@@ -15,6 +17,7 @@ const ChatPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         console.error("User not found");
+        toast.error("User not found");
         return;
       }
 
@@ -66,6 +69,7 @@ const ChatPage = () => {
       }
     } catch (error) {
       console.error("Error fetching file paths:", error);
+      toast.warn("Error fetching file paths:", error);
       const errorMessage = {
         user: "AI",
         text: "An error occurred while fetching your uploaded files.",
@@ -79,6 +83,7 @@ const ChatPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         console.error("User not found");
+        toast.error("User not found");
         return;
       }
 
@@ -102,6 +107,7 @@ const ChatPage = () => {
       }
     } catch (error) {
       console.error("Error fetching previous chats:", error);
+      toast.error("Error fetching previous chats:");
     }
   };
 
@@ -110,6 +116,7 @@ const ChatPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         console.error("User not found");
+        toast.error("User not found");
         return;
       }
 
@@ -132,9 +139,11 @@ const ChatPage = () => {
         setChatId(data.chatId);
       } else {
         console.error("Failed to create chat:", data.message);
+        toast.error("Failed to create chat:", data.message);
       }
     } catch (error) {
       console.error("Error creating chat:", error);
+      toast.error("Error creating chat:", error);
     }
   };
 
@@ -143,6 +152,7 @@ const ChatPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         console.error("User not found");
+        toast.error("User not found");
         return;
       }
 
@@ -165,11 +175,14 @@ const ChatPage = () => {
       const data = await subChatResponse.json();
       if (data.success) {
         console.log("Subchat created:", data.subChat);
+        toast.success("Subchat created");
       } else {
         console.error("Failed to create subchat:", data.message);
+        toast.error("Failed to create subchat:");
       }
     } catch (error) {
       console.error("Error creating subchat:", error);
+      toast.error("Error creating subchat:", error);
     }
   };
 
@@ -196,6 +209,7 @@ const ChatPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         console.error("User not found");
+        toast.error("User not found");
         return;
       }
 
@@ -220,6 +234,7 @@ const ChatPage = () => {
       }
     } catch (error) {
       console.error("Error fetching selected chat:", error);
+      toast.error("Error fetching selected chat:", error);
     }
   };
 

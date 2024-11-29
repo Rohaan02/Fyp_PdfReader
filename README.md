@@ -124,5 +124,5 @@ We welcome contributions and feedback to help improve the tool!
 Used react-icons
 and installed by running this command "npm install react-icons"
 
-Server ma run
-npm install openai
+For toast notifications:-
+npm install --save react-toastify

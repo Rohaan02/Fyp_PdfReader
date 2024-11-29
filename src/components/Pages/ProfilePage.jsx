@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios"; // Import axios for API calls
 import { FaUser, FaLock } from "react-icons/fa";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
@@ -68,13 +70,13 @@ const Profile = () => {
               email: payload.newEmail || userData.email,
             })
           );
-          alert("Profile updated successfully!");
+          toast.success("🎉 Profile updated successfully!");
         } else {
-          alert("Failed to update profile. " + response.data.message);
+          toast.error("Failed to update profile. " + response.data.message);
         }
       } catch (error) {
         console.error("Error updating profile:", error);
-        alert("An error occurred while updating the profile.");
+        toast.error("An error occurred while updating the profile.");
       }
     }
   };
@@ -244,7 +246,7 @@ const Profile = () => {
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (userData.newPassword !== userData.confirmPassword) {
-                      alert("Passwords do not match!");
+                      toast.error("Passwords do not match!");
                       return;
                     }
                     saveUserData();

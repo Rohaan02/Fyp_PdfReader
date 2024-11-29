@@ -319,14 +319,14 @@ app.put("/api/chats/:chatId", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Chat updated successfully",
+      message: "Chat name updated successfully",
       chat,
     });
   } catch (error) {
     console.error("Error updating chat:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to update chat",
+      message: "Failed to update chat name",
       error,
     });
   }

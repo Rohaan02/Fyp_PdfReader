@@ -8,12 +8,15 @@ import UploadFiles from "./components/Pages/UploadFiles";
 import ChatPage from "./components/Pages/Chat/ChatPage";
 import PrivateRoute from "./PrivateRoute";
 import ProfilePage from "./components/Pages/ProfilePage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
         <Header />
+        <ToastContainer />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />

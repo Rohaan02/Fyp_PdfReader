@@ -4,6 +4,8 @@ import axios from "../../utils/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 import { jwtDecode } from "jwt-decode";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -20,7 +22,7 @@ const AuthPage = () => {
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
-      alert("User is already logged in");
+      toast.info("User is already logged in");
       navigate("/upload");
     } else {
       setIsLogin(false);
@@ -35,7 +37,7 @@ const AuthPage = () => {
     event.preventDefault();
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -49,16 +51,14 @@ const AuthPage = () => {
           localStorage.setItem("user", JSON.stringify(response.data.user));
           navigate("/upload");
         } else {
-          alert("Sign up completed!");
+          toast.success("Sign up completed!");
           setIsLogin(true);
         }
       }
     } catch (error) {
-      alert(
-        isLogin
-          ? "Sign in failed, please check your credentials."
-          : "Sign up failed, please try again."
-      );
+      isLogin
+        ? toast.error("Sign in failed, please check your credentials.")
+        : toast.error("Sign up failed, please try again.");
       console.error("Error:", error);
     }
   };
@@ -74,13 +74,13 @@ const AuthPage = () => {
 
       if (res.status === 200) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        alert("Google login successful!");
+        toast.success("👋 Hey there, Google login successful!");
         navigate("/upload");
       } else {
-        alert("Google login failed, please try again.");
+        toast.error("Google login failed, please try again.");
       }
     } catch (error) {
-      alert("Google login failed, please try again.");
+      toast.error("Google login failed, please try again.");
       console.error("Error:", error);
     }
   };
@@ -231,7 +231,7 @@ const AuthPage = () => {
             <div className="flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => alert("Login Failed")}
+                onError={() => toast.error("Login Failed")}
               />
             </div>
             {isLogin ? (

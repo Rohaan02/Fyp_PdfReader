@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Feather, X } from "react-feather";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function UploadFiles() {
   const [files, setFiles] = useState([]);
@@ -27,18 +29,18 @@ function UploadFiles() {
     const loggedInUser = getLoggedInUser(); // Get the logged-in user
     if (loggedInUser === "null") {
       // Check if user is not logged in
-      alert("User not found. Please log in.");
+      toast.warn("User not found. Please log in.");
       return;
     }
 
     const pdfFiles = newFiles.filter((file) => {
       if (file.type !== "application/pdf") {
-        alert(`${file.name} is not a PDF file.`);
+        toast.warn(`${file.name} is not a PDF file.`);
         return false;
       }
       if (file.size > 5 * 1024 * 1024) {
         // 5 MB limit
-        alert(`${file.name} exceeds the 5MB file size limit.`);
+        toast.warn(`${file.name} exceeds the 5MB file size limit.`);
         return false;
       }
       return true;
@@ -80,7 +82,7 @@ function UploadFiles() {
 
   const handleContinue = async () => {
     if (files.length === 0) {
-      alert("Please upload at least one PDF file.");
+      toast.warn("Please upload at least one PDF file.");
       return;
     }
 
@@ -91,7 +93,7 @@ function UploadFiles() {
     // Fetch logged-in user information
     const loggedInUser = getLoggedInUser();
     if (!loggedInUser || !loggedInUser.id) {
-      alert("User not found, Please Login.");
+      toast.warn("User not found, Please Login.");
       setLoading(false);
       return;
     }
@@ -118,12 +120,12 @@ function UploadFiles() {
         navigate("/chat");
       } else {
         setLoading(false);
-        alert("File upload failed. Please try again.");
+        toast.error("File upload failed. Please try again.");
       }
     } catch (error) {
       console.error("Fetch error:", error);
       setLoading(false);
-      alert("Server error. Please try again later.");
+      toast.error("🚨 Server error. Please try again later.");
     }
   };
 
