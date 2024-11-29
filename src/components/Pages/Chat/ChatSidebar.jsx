@@ -1,5 +1,7 @@
 import React from "react";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ChatSidebar = ({
   chatTitles,
@@ -50,11 +52,11 @@ const ChatSidebar = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chatName: newChatName, userId: user._id }),
       });
-      alert("Chat updated successfully");
+      toast.success("Chat updated successfully");
       refreshChats();
     } catch (error) {
       console.error("Error updating chat:", error);
-      alert("Failed to update chat");
+      toast.error("Failed to update chat");
     }
   };
 
@@ -68,11 +70,11 @@ const ChatSidebar = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id }),
       });
-      alert("Chat deleted successfully");
+      toast.success("Chat deleted successfully");
       refreshChats();
     } catch (error) {
       console.error("Error deleting chat:", error);
-      alert("Failed to delete chat");
+      toast.error("Failed to delete chat");
     }
   };
 
