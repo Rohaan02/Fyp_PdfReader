@@ -3,7 +3,6 @@ import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Oval } from "react-loader-spinner"; // Import the spinner
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
