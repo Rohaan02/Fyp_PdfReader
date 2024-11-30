@@ -3,6 +3,7 @@ import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Oval } from "react-loader-spinner"; // Import the spinner
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
@@ -11,6 +12,7 @@ const ChatPage = () => {
   const [chatId, setChatId] = useState(null);
   const [recentUploadedFilePath, setRecentUploadedFilePath] = useState(null);
   const [activeChatId, setActiveChatId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const fetchUploadedFilePaths = async () => {
     try {
@@ -192,6 +194,9 @@ const ChatPage = () => {
     const newMessage = { user: "You", text: input };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
+    // Start loading state to disable sending during request
+    setLoading(true);
+
     try {
       // Send the user's input to the backend to get the AI's response
       const response = await fetch("http://localhost:5000/api/chat", {
@@ -220,10 +225,11 @@ const ChatPage = () => {
     } catch (error) {
       console.error("Error in handleSendMessage:", error);
       toast.error("An error occurred while fetching AI response.");
+    } finally {
+      // End loading state and clear input field
+      setLoading(false);
+      setInput("");
     }
-
-    // Clear input field after sending message
-    setInput("");
   };
 
   const handleSelectChat = async (chatId) => {
@@ -281,6 +287,7 @@ const ChatPage = () => {
         setInput={setInput}
         chatId={chatId}
         handleSendMessage={handleSendMessage}
+        loading={loading}
       />
     </div>
   );

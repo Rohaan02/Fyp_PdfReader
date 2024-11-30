@@ -129,3 +129,6 @@ npm install --save react-toastify
 
 to get the data from the server/.env file:
 npm install dotenv
+
+To get the spinners icons
+npm install react-loader-spinner

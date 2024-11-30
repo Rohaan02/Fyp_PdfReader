@@ -117,6 +117,7 @@ function UploadFiles() {
           );
         }
         setLoading(false);
+        toast.success("Files uploaded successfully!");
         navigate("/chat");
       } else {
         setLoading(false);
