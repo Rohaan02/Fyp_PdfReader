@@ -570,22 +570,56 @@ app.get("/api/subchats/:chatId", async (req, res) => {
   }
 });
 
-app.post("/api/chat", async (req, res) => {
-  const { prompt } = req.body;
+app.post("/api/call-chatApi", async (req, res) => {
+  const { prompt, chatId } = req.body; // Assuming you also send the chatId in the request
 
-  if (!prompt) {
-    return res.status(400).json({ error: "Prompt is required." });
+  if (!prompt || !chatId) {
+    return res.status(400).json({ error: "Prompt and chatId are required." });
   }
 
   try {
+    // Fetch the chat based on the chatId
+    const chat = await Chat.findById(chatId).exec();
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found." });
+    }
+
+    // Fetch the subchats related to this chat
+    const subChats = await SubChat.find({ chatId }).exec();
+
+    // Get the extracted text from the Chat model
+    const extractedText = chat.extractedText;
+
+    // Get the question and response data from SubChats
+    const subChatMessages = subChats
+      .map((subChat) =>
+        subChat.messages.map((message) => ({
+          question: message.question,
+          response: message.response,
+        }))
+      )
+      .flat();
+
+    // Create the prompt for the OpenAI API (you can adjust how you structure the prompt)
+    const openAIPrompt = `${extractedText}\n\nMessages:\n${subChatMessages
+      .map((m) => `Q: ${m.question}\nA: ${m.response}`)
+      .join("\n")}\n\nUser Prompt: ${prompt}`;
+
+    // Call the OpenAI API with the structured prompt
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo", // or gpt-4
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: openAIPrompt }],
     });
 
     const aiResponse = response.choices[0].message.content.trim();
 
-    res.json({ success: true, response: aiResponse });
+    // Return the AI response along with the extracted data and subchat messages
+    res.json({
+      success: true,
+      response: aiResponse,
+      extractedText: extractedText,
+      subChatMessages: subChatMessages,
+    });
   } catch (error) {
     console.error("Error from OpenAI:", error.message);
     res

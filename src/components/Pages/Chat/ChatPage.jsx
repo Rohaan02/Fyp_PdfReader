@@ -197,13 +197,13 @@ const ChatPage = () => {
     setLoading(true);
 
     try {
-      // Send the user's input to the backend to get the AI's response
-      const response = await fetch("http://localhost:5000/api/chat", {
+      // Send the user's input and chatId to the backend to get the AI's response
+      const response = await fetch("http://localhost:5000/api/call-chatApi", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: input }), // Send user input to OpenAI
+        body: JSON.stringify({ prompt: input, chatId: chatId }), // Send both user input and chatId
       });
 
       const data = await response.json();
@@ -217,6 +217,11 @@ const ChatPage = () => {
         if (chatId) {
           createSubChat(input, data.response, chatId);
         }
+
+        // Optionally, you can also handle the extracted text and subchat messages if needed
+        // For example, logging them:
+        console.log("Extracted Text: ", data.extractedText);
+        console.log("SubChat Messages: ", data.subChatMessages);
       } else {
         console.error("Failed to get response from OpenAI:", data.error);
         toast.error("Error fetching AI response.");
