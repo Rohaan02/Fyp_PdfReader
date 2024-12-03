@@ -278,7 +278,7 @@ const ChatPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-1 bg-gray-100 max-h-[100vh]">
+    <div className="flex flex-1 bg-gray-100 min-h-[100vh]">
       <ChatSidebar
         chatTitles={chatTitles}
         onSelectChat={handleSelectChat}

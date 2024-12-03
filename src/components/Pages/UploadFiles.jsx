@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Feather, X } from "react-feather";
+import { Trash2 } from "react-feather";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -8,11 +8,10 @@ function UploadFiles() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [uploadSessionId, setUploadSessionId] = useState(null); // Track session IDimport React, { useState } from "react";
+  const [uploadSessionId, setUploadSessionId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Retrieve or initialize the user's upload session ID from local storage
     const storedSessionId = localStorage.getItem("uploadSessionId");
     setUploadSessionId(storedSessionId ? parseInt(storedSessionId) : 1);
   }, []);
@@ -25,10 +24,15 @@ function UploadFiles() {
     return user ? { id: user._id, type: "User" } : "null";
   };
 
+  const truncateFileName = (fileName, maxLength = 17) => {
+    return fileName.length > maxLength
+      ? `${fileName.substring(0, maxLength)}...`
+      : fileName;
+  };
+
   const handleFileUpload = (newFiles) => {
-    const loggedInUser = getLoggedInUser(); // Get the logged-in user
+    const loggedInUser = getLoggedInUser();
     if (loggedInUser === "null") {
-      // Check if user is not logged in
       toast.warn("User not found. Please log in.");
       return;
     }
@@ -39,17 +43,19 @@ function UploadFiles() {
         return false;
       }
       if (file.size > 5 * 1024 * 1024) {
-        // 5 MB limit
         toast.warn(`${file.name} exceeds the 5MB file size limit.`);
         return false;
       }
       return true;
     });
 
-    // Rename files with uploadSessionId, loggedInUser id, and original file name
     const renamedFiles = pdfFiles.map((file) => {
-      const newFileName = `${uploadSessionId}_${loggedInUser.id}_${file.name}`; // Use loggedInUser.id here
-      return new File([file], newFileName, { type: file.type });
+      const newFileName = `${uploadSessionId}_${loggedInUser.id}_${file.name}`;
+      return {
+        originalFile: file,
+        displayName: file.name, // Show original file name
+        size: (file.size / (1024 * 1024)).toFixed(2), // Convert size to MB
+      };
     });
 
     setFiles((prevFiles) => [...prevFiles, ...renamedFiles]);
@@ -88,12 +94,11 @@ function UploadFiles() {
 
     setLoading(true);
     const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
+    files.forEach((file) => formData.append("files", file.originalFile));
 
-    // Fetch logged-in user information
     const loggedInUser = getLoggedInUser();
     if (!loggedInUser || !loggedInUser.id) {
-      toast.warn("User not found, Please Login.");
+      toast.warn("User not found. Please log in.");
       setLoading(false);
       return;
     }
@@ -108,9 +113,8 @@ function UploadFiles() {
       });
 
       if (response.ok) {
-        const data = await response.json(); // Assuming the server responds with the file paths
+        const data = await response.json();
         if (data.filePaths) {
-          // Save the file paths to local storage
           localStorage.setItem(
             "recentUploadedFilePath",
             JSON.stringify(data.filePaths)
@@ -165,11 +169,16 @@ function UploadFiles() {
         {files.map((file, index) => (
           <div
             key={index}
-            className="relative p-4 text-center bg-gray-100 rounded-lg shadow"
+            className="relative p-4 flex items-center justify-between bg-gray-100 rounded-lg shadow w-80"
           >
-            <p className="mb-2 text-sm font-medium">{file.name}</p>
-            <X
-              className="absolute top-1 right-1 cursor-pointer text-red-500 hover:text-red-900"
+            <div>
+              <p className="text-sm font-medium truncate">
+                {truncateFileName(file.displayName)}
+              </p>
+              <p className="text-xs text-gray-500">{file.size} MB</p>
+            </div>
+            <Trash2
+              className="cursor-pointer text-red-500 hover:text-red-900"
               onClick={() => handleFileRemove(index)}
               size={24}
             />

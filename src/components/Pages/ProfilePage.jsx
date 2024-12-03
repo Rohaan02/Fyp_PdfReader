@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"; // Import axios for API calls
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser, FaLock, FaUserAlt } from "react-icons/fa";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -136,15 +136,17 @@ const Profile = () => {
               <div>
                 {/* Avatar Section */}
                 <div className="flex items-center space-x-4">
-                  <img
-                    src={
-                      isGoogleUser
-                        ? userData.avatar
-                        : userAvatar || "https://via.placeholder.com/150"
-                    }
-                    alt="User Avatar"
-                    className="w-24 h-24 rounded-full border object-cover"
-                  />
+                  {isGoogleUser ? (
+                    <img
+                      src={userData.avatar}
+                      alt="User Avatar"
+                      className="w-24 h-24 rounded-full border object-cover"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 flex items-center justify-center rounded-full border bg-gray-200">
+                      <FaUserAlt className="text-gray-400 text-4xl" />
+                    </div>
+                  )}
                   <div>
                     <p className="text-lg font-medium">
                       {isGoogleUser
