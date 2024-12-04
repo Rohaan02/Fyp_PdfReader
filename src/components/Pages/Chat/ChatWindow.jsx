@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Oval } from "react-loader-spinner"; // Import the spinner
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 const ChatWindow = ({
   messages,
   input,
@@ -70,7 +73,9 @@ const ChatWindow = ({
                     : "bg-gray-200 text-gray-900"
                 }`}
               >
-                <p>{msg.text}</p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {msg.text}
+                </ReactMarkdown>
               </div>
             </div>
           ))}

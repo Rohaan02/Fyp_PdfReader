@@ -132,3 +132,10 @@ npm install dotenv
 
 To get the spinners icons
 npm install react-loader-spinner
+
+To show the data in correct way not in the markdown format but in the viewable format
+install in main:
+npm install react-markdown
+
+for making the data from the db in markup language again because storing the response in db as a string
+npm install remark-gfm

@@ -607,7 +607,7 @@ app.post("/api/call-chatApi", async (req, res) => {
 
     // Call the OpenAI API with the structured prompt
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // or gpt-4
+      model: "gpt-4", // or gpt-4
       messages: [{ role: "user", content: openAIPrompt }],
     });
 
