@@ -2,3 +2,5 @@ Server/.env
 .env
 node_modules/
 Server/node_modules/
+Server/uploads/
+Server/graphical_response.py

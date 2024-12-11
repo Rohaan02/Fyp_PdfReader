@@ -620,7 +620,7 @@ app.post("/api/call-chatApi", async (req, res) => {
     );
 
     const finalPrompt = includesGraph
-      ? `${openAIPrompt}\n\nAdditionally, provide the required Python code for generating the graph or chart and store that image in ./uploads/graphs/ directory and print only the filename as a string, i am using py, not ipynb.`
+      ? `${openAIPrompt}\n\nAdditionally, provide the required Python code for generating the graph or chart and store that image and add ${Date.now()} in its name in ./uploads/graphs/ directory and print only the filename as a string, i am using py, not ipynb.`
       : openAIPrompt;
 
     // Call the OpenAI API with the structured prompt
@@ -669,7 +669,6 @@ app.post("/api/call-chatApi", async (req, res) => {
     } else {
       aiResponse = response.choices[0].message.content.trim();
     }
-    console.log(aiResponse);
 
     // Return the AI response along with the extracted data and subchat messages
     res.json({
