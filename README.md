@@ -139,3 +139,5 @@ npm install react-markdown
 
 for making the data from the db in markup language again because storing the response in db as a string
 npm install remark-gfm
+
+sudo apt install python3-pandas

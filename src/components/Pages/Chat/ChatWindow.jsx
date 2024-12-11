@@ -30,30 +30,6 @@ const ChatWindow = ({
 
   return (
     <div className="w-4/5 flex flex-col bg-white shadow-lg rounded-lg overflow-hidden">
-      {/* Toggle Button */}
-      <div className="flex justify-between p-4 border-b border-gray-300">
-        <button
-          className={`w-1/2 py-2 text-center rounded-lg ${
-            activeTab === "textResponse"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-          onClick={() => setActiveTab("textResponse")}
-        >
-          Text Response
-        </button>
-        <button
-          className={`w-1/2 py-2 text-center rounded-lg ${
-            activeTab === "metaAnalysis"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-          onClick={() => setActiveTab("metaAnalysis")}
-        >
-          Meta Analysis
-        </button>
-      </div>
-
       <div
         className="flex-grow p-6 overflow-y-auto"
         style={{ height: "50vh" }} // Set a fixed height

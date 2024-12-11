@@ -33,6 +33,8 @@ mongoose.connect("mongodb://localhost:27017/pdf_data_extraction", {
   useUnifiedTopology: true,
 });
 
+app.use("/graphs", express.static("uploads/graphs"));
+
 // Configure Multer for file uploads
 const fs = require("fs");
 
@@ -605,13 +607,69 @@ app.post("/api/call-chatApi", async (req, res) => {
       .map((m) => `Q: ${m.question}\nA: ${m.response}`)
       .join("\n")}\n\nUser Prompt: ${prompt}`;
 
+    const graphKeywords = [
+      "graph",
+      "chart",
+      "plot",
+      "visualize",
+      "visualization",
+    ];
+
+    const includesGraph = graphKeywords.some((keyword) =>
+      prompt.toLowerCase().includes(keyword)
+    );
+
+    const finalPrompt = includesGraph
+      ? `${openAIPrompt}\n\nAdditionally, provide the required Python code for generating the graph or chart and store that image in ./uploads/graphs/ directory and print only the filename as a string, i am using py, not ipynb.`
+      : openAIPrompt;
+
     // Call the OpenAI API with the structured prompt
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // or gpt-4
-      messages: [{ role: "user", content: openAIPrompt }],
+      model: "gpt-4-turbo", // or gpt-4
+      messages: [{ role: "user", content: finalPrompt }],
     });
 
-    const aiResponse = response.choices[0].message.content.trim();
+    let aiResponse;
+    if (includesGraph) {
+      aiResponse = response.choices[0].message.content
+        .trim()
+        .split("```python")[1]
+        .split("```")[0];
+
+      const filePath = "graphical_response.py";
+
+      fs.writeFile(filePath, aiResponse, (err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          // file written successfully
+        }
+      });
+
+      await new Promise((resolve, reject) => {
+        const spawn = require("child_process").spawn;
+        const pythonProcess = spawn("python3", [filePath]);
+
+        let graphPath = ""; // Collect the output here
+
+        pythonProcess.stdout.on("data", (data) => {
+          graphPath += data.toString(); // Append chunks to extractText
+        });
+
+        pythonProcess.stdout.on("end", () => {
+          resolve(graphPath); // Resolve when the entire output is received
+        });
+
+        pythonProcess.on("error", (error) => {
+          reject(error); // Handle error cases
+        });
+      }).then((graphPath) => {
+        aiResponse = `![${graphPath}](http://localhost:5000/graphs/${graphPath})`;
+      });
+    } else {
+      aiResponse = response.choices[0].message.content.trim();
+    }
+    console.log(aiResponse);
 
     // Return the AI response along with the extracted data and subchat messages
     res.json({
