@@ -106,6 +106,7 @@ const ChatSidebar = ({
                     ? "bg-blue-200" // Highlight for active chat
                     : "bg-gray-200 hover:bg-gray-300"
                 }`}
+                title={chat.chatName}
                 onClick={() => onSelectChat(chat._id)}
               >
                 <span>{truncateText(chat.chatName, 25)}</span>

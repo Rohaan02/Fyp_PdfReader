@@ -101,7 +101,9 @@ const ChatPage = () => {
         setChatTitles(
           sortedChats.map((chat) => ({
             _id: chat._id,
-            chatName: chat.chatName || "Unnamed Chat",
+            chatName:
+              chat.chatName ||
+              chat.filenames[0].substring(chat.filenames[0].indexOf("-") + 1),
             createdAt: chat.createdAt,
           }))
         );
@@ -278,7 +280,7 @@ const ChatPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-1 bg-gray-100 min-h-[100vh]">
+    <div className="flex flex-1 bg-gray-100 max-h-[100vh]">
       <ChatSidebar
         chatTitles={chatTitles}
         onSelectChat={handleSelectChat}

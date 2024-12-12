@@ -150,9 +150,21 @@ Researchers, data analysts, students, and professionals across domains like heal
   npm install remark-gfm
   ```
 - To install pandas for Python:
+
   ```bash
   sudo apt install python3-pandas
   ```
+
+---
+
+## Additional Setup for Image Explanation with OpenAI:
+
+Install the necessary dependencies for explaining extracted images using OpenAI:
+
+```bash
+sudo apt install python3-openai
+sudo apt install python3-dotenv
+```
 
 ---
 
@@ -164,3 +176,7 @@ For more information or to contribute to this project, please contact:
 - **Noor Fatima**: [noor.fatima3831@gmail.com](mailto:noor.fatima3831@gmail.com)
 
 We welcome contributions and feedback to help improve the tool!
+
+also installed the for the explaination of extracted images with openai
+sudo apt install python3-openai
+sudo apt install python3-dotenv

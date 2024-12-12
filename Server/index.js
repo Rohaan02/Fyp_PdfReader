@@ -664,6 +664,9 @@ app.post("/api/call-chatApi", async (req, res) => {
           reject(error); // Handle error cases
         });
       }).then((graphPath) => {
+        if (graphPath.includes("./uploads/graphs/")) {
+          graphPath = graphPath.replace("./uploads/graphs/", "");
+        }
         aiResponse = `![${graphPath}](http://localhost:5000/graphs/${graphPath})`;
       });
     } else {
