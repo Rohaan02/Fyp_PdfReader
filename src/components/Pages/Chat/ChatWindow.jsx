@@ -32,7 +32,7 @@ const ChatWindow = ({
     <div className="w-4/5 flex flex-col bg-white shadow-lg rounded-lg overflow-hidden">
       <div
         className="flex-grow p-6 overflow-y-auto"
-        style={{ height: "50vh" }} // Set a fixed height
+        style={{ height: "60vh" }} // Set a fixed height
       >
         <div className="space-y-4">
           {messages.map((msg, index) => (
@@ -81,7 +81,7 @@ const ChatWindow = ({
 
       <div className="bg-gray-300 p-4">
         <textarea
-          className="w-full h-24 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:border-blue-500 resize-none"
+          className="w-full h-14 p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:border-blue-500 resize-none"
           value={input}
           placeholder="Type your message..."
           disabled={loading} // Disable the input field when loading is true
