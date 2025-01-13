@@ -39,14 +39,14 @@ app.use("/graphs", express.static("uploads/graphs"));
 const fs = require("fs");
 
 // Ensure the 'uploads' directory exists
-const uploadDir = path.join(__dirname, "uploads");
+const uploadDir = path.join(__dirname, "uploads/uploadedFiles/");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Save files to the 'uploads' directory
+    cb(null, "uploads/uploadedFiles/"); // Save files to the 'uploads' directory
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname); // Rename file with timestamp
